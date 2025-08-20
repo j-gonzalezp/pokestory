@@ -1,18 +1,18 @@
 "use client"
 
-import React from 'react';
+import React, { use } from 'react';
 import { useRouter } from 'next/navigation';
 import { PokedexDetail } from '@/components/pokedex/PokedexDetail';
 
-interface PokedexDetailPageProps {
-  params: {
-    pokemonName: string;
-  };
+
+interface PageProps {
+  params: Promise<{ pokemonName: string }>;
 }
 
-const PokedexDetailPage: React.FC<PokedexDetailPageProps> = ({ params }) => {
+const PokedexDetailPage: React.FC<PageProps> = ({ params }) => {
   const router = useRouter();
-  const { pokemonName } = params;
+
+  const { pokemonName } = use(params);
 
   const handleBack = () => {
     router.back();
