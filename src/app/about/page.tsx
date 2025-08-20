@@ -18,7 +18,7 @@ const AboutPage = () => {
           <h2 className="heading-primary mb-4">Our Vision: An Interactive Pokedex</h2>
           <p className="body-text mb-4">
            
-            &quot;PokeStories&quot; is born from the vision of transforming a traditional Pokedex into an interactive and enriching experience. This project goes beyond being a simple Pokémon database; it aspires to be a dynamic encyclopedia that comes to life through generated narratives, offering users a unique way to explore the vast Pokémon universe.
+            &quot;PokeStories&quot; is born from the vision of transforming a traditional Pokedex into an interactive and enriching experience. This project goes beyond being a simple Pokémon database; it aspires to be a dynamic RPG and encyclopedia that comes to life through generated narratives, offering users a unique way to explore the vast Pokémon universe.
           </p>
           <p className="body-text">
             Imagine a platform where each Pokémon not only has its stats and descriptions but also unique stories that unfold as you interact with the application.

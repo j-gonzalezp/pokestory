@@ -1,5 +1,5 @@
 "use client"
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
@@ -18,6 +18,9 @@ import { PokedexDetail } from '../pokedex/PokedexDetail';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import TypewriterText from '@/components/animations/TypewriterText';
+import { AnimatedNumber } from '@/components/animations/AnimatedNumber';
+
+const MotionButton = motion(Button);
 
 interface MapNode {
   step: number;
@@ -193,6 +196,36 @@ const translations = {
   }
 };
 
+const containerVariants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.08,
+      delayChildren: 0.1,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: {
+    opacity: 0,
+    y: 20,
+    scale: 0.95
+  },
+  show: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: {
+      type: 'spring' as const,
+      stiffness: 200,
+      damping: 20,
+      mass: 0.5,
+    },
+  },
+};
+
 const SettingsScreen: React.FC<SettingsScreenProps> = ({
   onStartJourney,
   selectedGenerations,
@@ -221,97 +254,122 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({
   return (
     <div className="min-h-screen p-4 sm:p-6">
       <div className="max-w-4xl mx-auto">
-        <Card className="mb-6 md:mb-8">
-          <CardHeader className="text-center">
-            <CardTitle className="text-4xl font-bold text-slate-800 mb-2">
-              {t.welcomeTitle}
-            </CardTitle>
-            <CardDescription className="text-lg text-slate-600">
-              {t.welcomeDescription}
-            </CardDescription>
-          </CardHeader>
-        </Card>
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+        >
+          <Card className="mb-6 md:mb-8">
+            <CardHeader className="text-center">
+              <CardTitle className="text-4xl font-bold text-slate-800 mb-2">
+                {t.welcomeTitle}
+              </CardTitle>
+              <CardDescription className="text-lg text-slate-600">
+                {t.welcomeDescription}
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        </motion.div>
 
-        <div className="grid md:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                {APP_ICON_MAP.Globe && <APP_ICON_MAP.Globe className="h-5 w-5" />}
-                {t.selectGenerations}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <Button
-                  variant={selectedGenerations.length === GENERATIONS.length ? 'default' : 'outline'}
-                  onClick={handleSelectAllGenerations}
-                  className="w-full"
-                >
-                  {t.selectAll}
-                </Button>
-                <div className="grid grid-cols-2 gap-2">
-                  {GENERATIONS.map(gen => (
-                    <Button
-                      key={gen.id}
-                      variant={selectedGenerations.includes(gen.id) ? 'default' : 'outline'}
-                      onClick={() => handleGenerationToggle(gen.id)}
-                      size="sm"
-                    >
-                      {gen.displayName}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                {APP_ICON_MAP.Languages && <APP_ICON_MAP.Languages className="h-5 w-5" />}
-                {t.language}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <p className="text-sm text-gray-600 mb-3">
-                  {language === 'es' ? 'Elige el idioma para tu viaje:' : 'Choose your journey language:'}
-                </p>
-                <div className="flex gap-3">
-                  <Button
-                    variant={language === 'es' ? 'default' : 'outline'}
-                    onClick={() => onLanguageChange('es')}
-                    className="flex-1"
+        <motion.div
+          className="grid md:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8"
+          variants={containerVariants}
+          initial="hidden"
+          animate="show"
+        >
+          <motion.div variants={itemVariants}>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  {APP_ICON_MAP.Globe && <APP_ICON_MAP.Globe className="h-5 w-5" />}
+                  {t.selectGenerations}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <MotionButton
+                    variant={selectedGenerations.length === GENERATIONS.length ? 'default' : 'outline'}
+                    onClick={handleSelectAllGenerations}
+                    className="w-full"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
                   >
-                    {t.spanish}
-                  </Button>
-                  <Button
-                    variant={language === 'en' ? 'default' : 'outline'}
-                    onClick={() => onLanguageChange('en')}
-                    className="flex-1"
-                  >
-                    {t.english}
-                  </Button>
+                    {t.selectAll}
+                  </MotionButton>
+                  <div className="grid grid-cols-2 gap-2">
+                    {GENERATIONS.map(gen => (
+                      <MotionButton
+                        key={gen.id}
+                        variant={selectedGenerations.includes(gen.id) ? 'default' : 'outline'}
+                        onClick={() => handleGenerationToggle(gen.id)}
+                        size="sm"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        {gen.displayName}
+                      </MotionButton>
+                    ))}
+                  </div>
                 </div>
-              </div>
-              <div className="pt-4 border-t border-gray-200">
-                <Button
-                  onClick={onStartJourney}
-                  disabled={selectedGenerations.length === 0}
-                  size="lg"
-                  className="w-full px-8 py-6 text-lg "
-                >
-                  <Play className="h-5 w-5 mr-2" />
-                  {t.startJourney}
-                </Button>
-                {selectedGenerations.length === 0 && (
-                  <p className="text-red-500 text-sm mt-2 text-center">
-                    {language === 'es' ? 'Selecciona al menos una generación para continuar' : 'Select at least one generation to continue'}
+              </CardContent>
+            </Card>
+          </motion.div>
+          <motion.div variants={itemVariants}>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  {APP_ICON_MAP.Languages && <APP_ICON_MAP.Languages className="h-5 w-5" />}
+                  {t.language}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <p className="text-sm text-gray-600 mb-3">
+                    {language === 'es' ? 'Elige el idioma para tu viaje:' : 'Choose your journey language:'}
                   </p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+                  <div className="flex gap-3">
+                    <MotionButton
+                      variant={language === 'es' ? 'default' : 'outline'}
+                      onClick={() => onLanguageChange('es')}
+                      className="flex-1"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      {t.spanish}
+                    </MotionButton>
+                    <MotionButton
+                      variant={language === 'en' ? 'default' : 'outline'}
+                      onClick={() => onLanguageChange('en')}
+                      className="flex-1"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      {t.english}
+                    </MotionButton>
+                  </div>
+                </div>
+                <div className="pt-4 border-t border-gray-200">
+                  <MotionButton
+                    onClick={onStartJourney}
+                    disabled={selectedGenerations.length === 0}
+                    size="lg"
+                    className="w-full px-8 py-6 text-lg "
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <Play className="h-5 w-5 mr-2" />
+                    {t.startJourney}
+                  </MotionButton>
+                  {selectedGenerations.length === 0 && (
+                    <p className="text-red-500 text-sm mt-2 text-center">
+                      {language === 'es' ? 'Selecciona al menos una generación para continuar' : 'Select at least one generation to continue'}
+                    </p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </motion.div>
       </div>
     </div>
   );
@@ -360,83 +418,136 @@ const CompanionSelection: React.FC<CompanionSelectionProps> = ({
   return (
     <div className="min-h-screen p-4 sm:p-6">
       <div className="max-w-4xl mx-auto">
-        <Button onClick={onBack} variant="outline" className="mb-4">
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          {t.backToSettings}
-        </Button>
-        <Card className="mb-6">
-          <CardHeader className="text-center">
-            <CardTitle className="text-3xl font-bold">{t.chooseYourCompanion}</CardTitle>
-            <CardDescription>{t.chooseYourCompanionDesc}</CardDescription>
-          </CardHeader>
-        </Card>
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          <MotionButton onClick={onBack} variant="outline" className="mb-4" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            {t.backToSettings}
+          </MotionButton>
+        </motion.div>
 
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2"><Shield className="h-5 w-5" /> {t.yourPokemon}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {playerData.adoptedPokemon.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {playerData.adoptedPokemon.map(p => (
-                  <Card key={p.id} className="relative cursor-pointer hover:border-blue-500 transition-colors" onClick={() => onStartWithExisting(p)}>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="absolute top-2 right-2 h-6 w-6 text-red-500 hover:text-red-700"
-                      onClick={(e) => handleReleaseClick(p, e)}
-                      title={t.releasePokemon}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.1 }}
+        >
+          <Card className="mb-6">
+            <CardHeader className="text-center">
+              <CardTitle className="text-3xl font-bold">{t.chooseYourCompanion}</CardTitle>
+              <CardDescription>{t.chooseYourCompanionDesc}</CardDescription>
+            </CardHeader>
+          </Card>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.2 }}
+        >
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2"><Shield className="h-5 w-5" /> {t.yourPokemon}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {playerData.adoptedPokemon.length > 0 ? (
+                <motion.div
+                  className="grid grid-cols-1 md:grid-cols-3 gap-4"
+                  variants={containerVariants}
+                  initial="hidden"
+                  animate="show"
+                >
+                  {playerData.adoptedPokemon.map(p => (
+                    <motion.div
+                      key={p.id}
+                      variants={itemVariants}
+                      whileHover={{ scale: 1.05, y: -4 }}
+                      whileTap={{ scale: 0.98 }}
                     >
-                      <XCircle className="h-5 w-5" />
-                    </Button>
-                    <CardHeader className="flex-row items-center gap-4">
-                      <Image src={p.spriteUrl} alt={p.nickname} width={48} height={48} />
-                      <div>
-                        <p className="font-bold">{p.nickname}</p>
-                        <p className="text-sm text-slate-500">{t.level} {p.level}</p>
-                      </div>
-                    </CardHeader>
-                    <CardFooter>
-                      <Button className="w-full" variant="outline">{t.startWith} {p.nickname}</Button>
-                    </CardFooter>
-                  </Card>
-                ))}
-              </div>
-            ) : (
-              <p className="text-center text-slate-500 py-4">No tienes Pokémon adoptados todavía.</p>
-            )}
-          </CardContent>
-        </Card>
+                      <Card className="relative cursor-pointer hover:border-blue-500 transition-colors h-full flex flex-col" onClick={() => onStartWithExisting(p)}>
+                        <MotionButton
+                          variant="ghost"
+                          size="icon"
+                          className="absolute top-2 right-2 h-6 w-6 text-red-500 hover:text-red-700"
+                          onClick={(e) => handleReleaseClick(p, e as any)}
+                          title={t.releasePokemon}
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.9 }}
+                        >
+                          <XCircle className="h-5 w-5" />
+                        </MotionButton>
+                        <CardHeader className="flex-row items-center gap-4">
+                          <Image src={p.spriteUrl} alt={p.nickname} width={48} height={48} />
+                          <div>
+                            <p className="font-bold">{p.nickname}</p>
+                            <p className="text-sm text-slate-500">{t.level} {p.level}</p>
+                          </div>
+                        </CardHeader>
+                        <CardFooter className="mt-auto">
+                          <MotionButton className="w-full" variant="outline" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>{t.startWith} {p.nickname}</MotionButton>
+                        </CardFooter>
+                      </Card>
+                    </motion.div>
+                  ))}
+                </motion.div>
+              ) : (
+                <p className="text-center text-slate-500 py-4">No tienes Pokémon adoptados todavía.</p>
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2"><Dices className="h-5 w-5" /> {t.adoptNew}</CardTitle>
-            {isTeamFull && <CardDescription className="text-red-500">{t.teamFull}</CardDescription>}
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <div className="flex justify-center py-8"><Loader2 className="h-8 w-8 animate-spin" /></div>
-            ) : (
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {potentialProtagonists.map(p => (
-                  <Card
-                    key={p.name}
-                    className={`cursor-pointer transition-transform hover:scale-105 ${isTeamFull ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    onClick={() => !isTeamFull && onStartWithNew(p)}
-                  >
-                    <CardContent className="p-4 text-center">
-                      <Image src={p.spriteUrl!} alt={p.name} width={96} height={96} className="mx-auto mb-2" />
-                      <h3 className="font-semibold capitalize">{p.name}</h3>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.3 }}
+        >
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2"><Dices className="h-5 w-5" /> {t.adoptNew}</CardTitle>
+              {isTeamFull && <CardDescription className="text-red-500">{t.teamFull}</CardDescription>}
+            </CardHeader>
+            <CardContent>
+              {loading ? (
+                <div className="flex justify-center py-8"><Loader2 className="h-8 w-8 animate-spin" /></div>
+              ) : (
+                <motion.div
+                  className="grid grid-cols-2 md:grid-cols-4 gap-4"
+                  variants={containerVariants}
+                  initial="hidden"
+                  animate="show"
+                >
+                  {potentialProtagonists.map(p => (
+                    <motion.div
+                      key={p.name}
+                      variants={itemVariants}
+                      whileHover={!isTeamFull ? { scale: 1.05 } : {}}
+                      whileTap={!isTeamFull ? { scale: 0.98 } : {}}
+                    >
+                      <Card
+                        className={`cursor-pointer transition-transform ${isTeamFull ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        onClick={() => !isTeamFull && onStartWithNew(p)}
+                      >
+                        <CardContent className="p-4 text-center">
+                          <Image src={p.spriteUrl!} alt={p.name} width={96} height={96} className="mx-auto mb-2" />
+                          <h3 className="font-semibold capitalize">{p.name}</h3>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  ))}
+                </motion.div>
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
 
         <Dialog open={releaseConfirmOpen} onOpenChange={setReleaseConfirmOpen}>
-          <DialogContent>
+          <DialogContent
+            data-state={releaseConfirmOpen ? "open" : "closed"}
+            className="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 duration-300"
+          >
             <DialogHeader>
               <DialogTitle>{t.confirmRelease} {pokemonToRelease?.nickname}?</DialogTitle>
               <DialogDescription>
@@ -469,45 +580,57 @@ const PokemonStatusCard: React.FC<PokemonStatusCardProps> = ({ pokemon, language
   const moralePercentage = (pokemon.stats.currentMorale / pokemon.stats.maxMorale) * 100;
 
   return (
-    <Card className="mb-4">
-      <CardHeader className="flex flex-row items-center gap-4 space-y-0 pb-2">
-        {pokemon.spriteUrl && (
-          <Image src={pokemon.spriteUrl} alt={pokemon.nickname} width={64} height={64} />
-        )}
-        <div className="flex-1">
-          <CardTitle className="text-2xl">{pokemon.nickname}</CardTitle>
-          <CardDescription>{`${t.level} ${pokemon.level} ${pokemon.speciesName}`}</CardDescription>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-3">
-          <div>
-            <div className="flex justify-between items-center mb-1 text-sm">
-              <span className="font-medium flex items-center gap-1"><Heart className="h-4 w-4 text-red-500" /> {t.hp}</span>
-              <span>{`${pokemon.stats.currentHP} / ${pokemon.stats.maxHP}`}</span>
-            </div>
-            <Progress value={hpPercentage} className="h-2 [&>div]:bg-red-500" />
+    <motion.div
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, delay: 0.1 }}
+    >
+      <Card className="mb-4">
+        <CardHeader className="flex flex-row items-center gap-4 space-y-0 pb-2">
+          {pokemon.spriteUrl && (
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+            >
+              <Image src={pokemon.spriteUrl} alt={pokemon.nickname} width={64} height={64} />
+            </motion.div>
+          )}
+          <div className="flex-1">
+            <CardTitle className="text-2xl">{pokemon.nickname}</CardTitle>
+            <CardDescription>{`${t.level} ${pokemon.level} ${pokemon.speciesName}`}</CardDescription>
           </div>
-          <div>
-            <div className="flex justify-between items-center mb-1 text-sm">
-              <span className="font-medium flex items-center gap-1"><Smile className="h-4 w-4 text-blue-500" /> {t.morale}</span>
-              <span>{`${pokemon.stats.currentMorale} / ${pokemon.stats.maxMorale}`}</span>
-            </div>
-            <Progress value={moralePercentage} className="h-2" />
-          </div>
-          <div>
-            <h4 className="font-medium text-sm mb-2 flex items-center gap-1"><Star className="h-4 w-4 text-yellow-500" /> {t.traits}</h4>
-            {pokemon.traits.length > 0 ? (
-              <div className="flex flex-wrap gap-2">
-                {pokemon.traits.map(trait => <Badge key={trait} variant="secondary">{trait}</Badge>)}
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            <div>
+              <div className="flex justify-between items-center mb-1 text-sm">
+                <span className="font-medium flex items-center gap-1"><Heart className="h-4 w-4 text-red-500" /> {t.hp}</span>
+                <span><AnimatedNumber value={pokemon.stats.currentHP} /> / <AnimatedNumber value={pokemon.stats.maxHP} /></span>
               </div>
-            ) : (
-              <p className="text-sm text-slate-500">{t.noTraits}</p>
-            )}
+              <Progress value={hpPercentage} className="h-2 [&>div]:bg-red-500" />
+            </div>
+            <div>
+              <div className="flex justify-between items-center mb-1 text-sm">
+                <span className="font-medium flex items-center gap-1"><Smile className="h-4 w-4 text-blue-500" /> {t.morale}</span>
+                <span><AnimatedNumber value={pokemon.stats.currentMorale} /> / <AnimatedNumber value={pokemon.stats.maxMorale} /></span>
+              </div>
+              <Progress value={moralePercentage} className="h-2" />
+            </div>
+            <div>
+              <h4 className="font-medium text-sm mb-2 flex items-center gap-1"><Star className="h-4 w-4 text-yellow-500" /> {t.traits}</h4>
+              {pokemon.traits.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {pokemon.traits.map(trait => <Badge key={trait} variant="secondary">{trait}</Badge>)}
+                </div>
+              ) : (
+                <p className="text-sm text-slate-500">{t.noTraits}</p>
+              )}
+            </div>
           </div>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </motion.div>
   );
 };
 
@@ -550,192 +673,265 @@ const StoryScreen: React.FC<StoryScreenProps> = ({
     show: { opacity: 1, y: 0 }
   };
 
+  const optionsContainerVariants = {
+    hidden: { opacity: 0, y: 20 },
+    show: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        staggerChildren: 0.05,
+        delayChildren: 0.2
+      }
+    }
+  };
+
+  const optionItemVariants = {
+    hidden: { opacity: 0, y: 10 },
+    show: { opacity: 1, y: 0 }
+  };
+
   const totalStorySteps = 10;
   const readingProgress = (step / totalStorySteps) * 100;
 
   return (
     <div className="min-h-screen p-2 sm:p-6">
       <div className="max-w-4xl mx-auto space-y-4">
-        <Button
-          onClick={onRestart}
-          variant="outline"
-          className="mb-4"
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.3 }}
         >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          {t.backToTeamSelection}
-        </Button>
+          <MotionButton
+            onClick={onRestart}
+            variant="outline"
+            className="mb-4"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            {t.backToTeamSelection}
+          </MotionButton>
+        </motion.div>
 
         {activePokemon && <PokemonStatusCard pokemon={activePokemon} language={language} />}
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg text-center">{t.journeyMap}</CardTitle>
-          </CardHeader>
-          <CardContent className="p-4">
-            <div className="w-full overflow-x-auto pb-4">
-              <div className="flex items-center gap-x-4 sm:gap-x-6 py-4 px-4 min-w-max">
-                {Array.from({ length: 10 }, (_, index) => {
-                  const currentMapStep = index + 1;
-                  const node = mapNodes.find(n => n.step === currentMapStep);
-                  const IconComponent = node ? getIconByName(node.iconName) : APP_ICON_MAP.MapPin;
-                  const isActive = currentMapStep === (viewingHistoryStep || step);
-                  const isCompleted = node?.completed || false;
-                  const isClickable = isCompleted || currentMapStep === step;
-                  const prevNodeCompleted = mapNodes.some(n => n.step === currentMapStep - 1 && n.completed);
-                  const isLineActive = prevNodeCompleted && isCompleted;
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.2 }}
+        >
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg text-center">{t.journeyMap}</CardTitle>
+            </CardHeader>
+            <CardContent className="p-4">
+              <div className="w-full overflow-x-auto pb-4">
+                <div className="flex items-center gap-x-4 sm:gap-x-6 py-4 px-4 min-w-max">
+                  {Array.from({ length: 10 }, (_, index) => {
+                    const currentMapStep = index + 1;
+                    const node = mapNodes.find(n => n.step === currentMapStep);
+                    const IconComponent = node ? getIconByName(node.iconName) : APP_ICON_MAP.MapPin;
+                    const isActive = currentMapStep === (viewingHistoryStep || step);
+                    const isCompleted = node?.completed || false;
+                    const isClickable = isCompleted || currentMapStep === step;
+                    const prevNodeCompleted = mapNodes.some(n => n.step === currentMapStep - 1 && n.completed);
+                    const isLineActive = prevNodeCompleted && isCompleted;
 
-                  return (
-                    <React.Fragment key={currentMapStep}>
-                      {currentMapStep > 1 && (
-                        <div
-                          className={`
-                            flex-shrink-0 w-16 h-1 rounded-full transition-colors duration-500 ease-in-out
-                            ${isLineActive ? 'bg-green-500' : 'bg-gray-300'}
-                          `}
-                        />
-                      )}
-                      <div
-                        className={`
-                          flex-shrink-0 relative w-14 h-14 rounded-full flex items-center justify-center border-2 transition-all
-                          ${isActive
-                            ? 'bg-blue-500 border-blue-500 shadow-lg scale-110 animate-pulse'
-                            : isCompleted
-                              ? 'bg-green-500 border-green-500 hover:scale-105'
-                              : 'bg-gray-200 border-gray-300'
-                          }
-                          ${isClickable
-                            ? 'cursor-pointer hover:shadow-md'
-                            : 'cursor-default'
-                          }
-                        `}
-                        onClick={() => isClickable && onMapNodeClick(currentMapStep)}
-                      >
-                        <IconComponent
-                          className={`h-7 w-7 ${isActive || isCompleted ? 'text-white' : 'text-gray-400'
-                            }`}
-                        />
-
-                        {isActive && (
-                          <div className="absolute -top-0.5 -right-0.5 w-2 h-2 sm:w-3 sm:h-3 bg-yellow-400 rounded-full border border-white"></div>
+                    return (
+                      <React.Fragment key={currentMapStep}>
+                        {currentMapStep > 1 && (
+                          <motion.div
+                            className={`
+                              flex-shrink-0 w-16 h-1 rounded-full
+                              ${isLineActive ? 'bg-green-500' : 'bg-gray-300'}
+                            `}
+                            initial={{ width: 0 }}
+                            animate={{ width: '4rem' }}
+                            transition={{ duration: 0.5, delay: 0.2 }}
+                          />
                         )}
-                      </div>
-                    </React.Fragment>
-                  );
-                })}
+                        <motion.div
+                          className={`
+                            flex-shrink-0 relative w-14 h-14 rounded-full flex items-center justify-center border-2 transition-all
+                            ${isActive
+                              ? 'bg-blue-500 border-blue-500 shadow-lg scale-110'
+                              : isCompleted
+                                ? 'bg-green-500 border-green-500'
+                                : 'bg-gray-200 border-gray-300'
+                            }
+                            ${isClickable
+                              ? 'cursor-pointer hover:shadow-md'
+                              : 'cursor-default'
+                            }
+                          `}
+                          onClick={() => isClickable && onMapNodeClick(currentMapStep)}
+                          whileHover={isClickable ? { scale: 1.15 } : {}}
+                          whileTap={isClickable ? { scale: 0.95 } : {}}
+                          animate={isActive ? { scale: [1.1, 1.15, 1.1] } : {}}
+                          transition={isActive ? { duration: 1.5, repeat: Infinity, repeatType: "reverse" } : {}}
+                        >
+                          <IconComponent
+                            className={`h-7 w-7 ${isActive || isCompleted ? 'text-white' : 'text-gray-400'
+                              }`}
+                          />
+
+                          {isActive && (
+                            <div className="absolute -top-0.5 -right-0.5 w-2 h-2 sm:w-3 sm:h-3 bg-yellow-400 rounded-full border border-white"></div>
+                          )}
+                        </motion.div>
+                      </React.Fragment>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </motion.div>
 
         {storyElements.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-xl font-bold text-center">{t.currentElements}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <motion.div
-                className="flex gap-4 justify-center overflow-x-auto pb-4 px-4"
-                variants={pokemonContainerVariants}
-                initial="hidden"
-                animate="show"
-              >
-                {storyElements.map((element, index) => (
-                  element.spriteUrl && (
-                    <motion.div
-                      key={`${element.name}-${index}`}
-                      variants={pokemonItemVariants}
-                      className="flex flex-col items-center transform hover:scale-105 transition-transform duration-200 cursor-pointer flex-shrink-0 p-2"
-                      onClick={() => onPokemonCardClick(element)}
-                    >
-                      <div className="relative w-32 h-32 bg-white rounded-full p-2 shadow-lg border-2 border-gray-200 hover:border-blue-400 transition-colors">
-                        <Image
-                          src={element.spriteUrl}
-                          alt={element.name}
-                          fill
-                          style={{ objectFit: 'contain' }}
-                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                        />
-                      </div>
-                      <span className="mt-2 text-sm font-medium text-gray-800 capitalize">
-                        {element.name}
-                      </span>
-                      {element.type && (
-                        <div className="flex gap-1 mt-1">
-                          <span
-                            className="px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-700"
-                          >
-                            {element.type}
-                          </span>
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.3 }}
+          >
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-xl font-bold text-center">{t.currentElements}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <motion.div
+                  className="flex gap-4 justify-center overflow-x-auto pb-4 px-4"
+                  variants={pokemonContainerVariants}
+                  initial="hidden"
+                  animate="show"
+                >
+                  {storyElements.map((element, index) => (
+                    element.spriteUrl && (
+                      <motion.div
+                        key={`${element.name}-${index}`}
+                        variants={pokemonItemVariants}
+                        className="flex flex-col items-center transition-transform duration-200 cursor-pointer flex-shrink-0 p-2"
+                        onClick={() => onPokemonCardClick(element)}
+                        whileHover={{ scale: 1.05, y: -5 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        <div className="relative w-32 h-32 bg-white rounded-full p-2 shadow-lg border-2 border-gray-200 hover:border-blue-400 transition-colors">
+                          <Image
+                            src={element.spriteUrl}
+                            alt={element.name}
+                            fill
+                            style={{ objectFit: 'contain' }}
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                          />
                         </div>
-                      )}
-                    </motion.div>
-                  )
-                ))}
-              </motion.div>
-            </CardContent>
-          </Card>
+                        <span className="mt-2 text-sm font-medium text-gray-800 capitalize">
+                          {element.name}
+                        </span>
+                        {element.type && (
+                          <div className="flex gap-1 mt-1">
+                            <span
+                              className="px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-700"
+                            >
+                              {element.type}
+                            </span>
+                          </div>
+                        )}
+                      </motion.div>
+                    )
+                  ))}
+                </motion.div>
+              </CardContent>
+            </Card>
+          </motion.div>
         )}
 
-        <Card className="relative">
-          <div className="h-1 bg-blue-200 rounded-full overflow-hidden">
-            <motion.div
-              className="h-full bg-blue-500"
-              initial={{ width: 0 }}
-              animate={{ width: `${readingProgress}%` }}
-              transition={{ duration: 0.5, ease: "easeOut" }}
-            />
-          </div>
-          <CardContent className="pt-6">
-            <div className="prose prose-slate max-w-none mt-4">
-              {isGeneratingStep && !isViewingHistory ? (
-                <div className="flex flex-col items-center justify-center py-12">
-                  <Loader2 className="h-8 w-8 animate-spin mb-4 text-blue-500" />
-                  <p className="text-lg text-center">{t.generatingChapter}</p>
-                </div>
-              ) : (
-                <TypewriterText
-                  text={storyText}
-                  wordDelay={0.05}
-                  onComplete={() => setIsTypingComplete(true)}
-                />
-              )}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.4 }}
+        >
+          <Card className="relative">
+            <div className="h-1 bg-blue-200 rounded-full overflow-hidden">
+              <motion.div
+                className="h-full bg-blue-500"
+                initial={{ width: 0 }}
+                animate={{ width: `${readingProgress}%` }}
+                transition={{ duration: 0.5, ease: "easeOut" }}
+              />
             </div>
-          </CardContent>
-        </Card>
-
-        {!isViewingHistory && isTypingComplete && !isGeneratingStep && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">{t.whatDoYouDecide}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-3">
-                {options.map((option, index) => (
-                  <Button
-                    key={index}
-                    variant="outline"
-                    className="h-auto p-4 text-left justify-start whitespace-normal"
-                    onClick={() => onSelectOption(index)}
-                    disabled={isGeneratingStep}
-                  >
-                    <span className="mr-3 text-sm text-slate-500 self-start pt-1">
-                      {index + 1}.
-                    </span>
-                    <span>{option.text}</span>
-                  </Button>
-                ))}
+            <CardContent className="pt-6">
+              <div className="prose prose-slate max-w-none mt-4">
+                {isGeneratingStep && !isViewingHistory ? (
+                  <div className="flex flex-col items-center justify-center py-12">
+                    <Loader2 className="h-8 w-8 animate-spin mb-4 text-blue-500" />
+                    <p className="text-lg text-center">{t.generatingChapter}</p>
+                  </div>
+                ) : (
+                  <TypewriterText
+                    text={storyText}
+                    wordDelay={0.05}
+                    onComplete={() => setIsTypingComplete(true)}
+                  />
+                )}
               </div>
             </CardContent>
           </Card>
-        )}
+        </motion.div>
+
+        <AnimatePresence mode="wait">
+          {!isViewingHistory && isTypingComplete && !isGeneratingStep && (
+            <motion.div
+              key="options"
+              initial="hidden"
+              animate="show"
+              exit="hidden"
+              variants={optionsContainerVariants}
+            >
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">{t.whatDoYouDecide}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid gap-3">
+                    {options.map((option, index) => (
+                      <motion.div key={index} variants={optionItemVariants}>
+                        <MotionButton
+                          variant="outline"
+                          className="h-auto p-4 text-left justify-start whitespace-normal w-full"
+                          onClick={() => onSelectOption(index)}
+                          disabled={isGeneratingStep}
+                          whileHover={{ scale: 1.01, x: 5 }}
+                          whileTap={{ scale: 0.99 }}
+                        >
+                          <span className="mr-3 text-sm text-slate-500 self-start pt-1">
+                            {index + 1}.
+                          </span>
+                          <span>{option.text}</span>
+                        </MotionButton>
+                      </motion.div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {isViewingHistory && (
-          <Button
-            onClick={() => onMapNodeClick(step)}
-            className="w-full"
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.1 }}
           >
-            {t.backToPresent}
-          </Button>
+            <MotionButton
+              onClick={() => onMapNodeClick(step)}
+              className="w-full"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              {t.backToPresent}
+            </MotionButton>
+          </motion.div>
         )}
       </div>
     </div>
@@ -764,90 +960,136 @@ const EndScreen: React.FC<EndScreenProps> = ({
 
   const deathMessage = t.deathMessage.replace('{nickname}', protagonist?.nickname || t.storyOf);
 
+  const storyItemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0, transition: { duration: 0.5 } }
+  };
+
   return (
     <div className="min-h-screen p-4 sm:p-6">
       <div className="max-w-6xl mx-auto">
-        <Card className="mb-6 md:mb-8">
-          <CardHeader className="text-center">
-            <CardTitle className="text-4xl font-bold text-slate-800 mb-2">
-              {protagonist && protagonist.stats.currentHP <= 0 ? t.pokemonDied : t.adventureEnd}
-            </CardTitle>
-            <CardDescription className="text-xl">
-              {protagonist && protagonist.stats.currentHP <= 0 ? deathMessage : `${t.storyOf} ${protagonist?.nickname || ''} ${t.hasEnded}`}
-            </CardDescription>
-            {protagonist?.spriteUrl && (
-              <Image
-                src={protagonist.spriteUrl}
-                alt={protagonist.nickname}
-                width={128}
-                height={128}
-                className={`mx-auto mt-6 ${protagonist.stats.currentHP <= 0 ? 'grayscale' : ''}`}
-                style={{ objectFit: 'contain' }}
-              />
-            )}
-          </CardHeader>
-        </Card>
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+        >
+          <Card className="mb-6 md:mb-8">
+            <CardHeader className="text-center">
+              <CardTitle className="text-4xl font-bold text-slate-800 mb-2">
+                {protagonist && protagonist.stats.currentHP <= 0 ? t.pokemonDied : t.adventureEnd}
+              </CardTitle>
+              <CardDescription className="text-xl">
+                {protagonist && protagonist.stats.currentHP <= 0 ? deathMessage : `${t.storyOf} ${protagonist?.nickname || ''} ${t.hasEnded}`}
+              </CardDescription>
+              {protagonist?.spriteUrl && (
+                <motion.div
+                  initial={{ scale: 0, opacity: 0 }}
+                  animate={{
+                    scale: 1,
+                    opacity: 1,
+                    filter: protagonist.stats.currentHP <= 0 ? 'grayscale(100%)' : 'grayscale(0%)'
+                  }}
+                  transition={{ duration: 0.8, delay: 0.3, type: 'spring', stiffness: 100 }}
+                  className="mx-auto mt-6"
+                >
+                  <Image
+                    src={protagonist.spriteUrl}
+                    alt={protagonist.nickname}
+                    width={128}
+                    height={128}
+                    style={{ objectFit: 'contain' }}
+                  />
+                </motion.div>
+              )}
+            </CardHeader>
+          </Card>
+        </motion.div>
 
-        <Card className="mb-6 md:mb-8">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Save className="h-5 w-5" />
-              {t.saveStory}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex gap-4">
-              <Input
-                type="text"
-                placeholder={t.storyTitlePlaceholder}
-                value={storyTitle}
-                onChange={(e) => setStoryTitle(e.target.value)}
-                className="flex-1"
-                maxLength={50}
-              />
-              <Button
-                onClick={handleSaveStory}
-                disabled={!storyTitle.trim()}
-                className="flex items-center gap-2"
-              >
-                <Save className="h-4 w-4" />
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+        >
+          <Card className="mb-6 md:mb-8">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Save className="h-5 w-5" />
                 {t.saveStory}
-              </Button>
-            </div>
-            {savedMessage && (
-              <p className="text-green-600 mt-2 font-medium">{savedMessage}</p>
-            )}
-          </CardContent>
-        </Card>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex gap-4">
+                <Input
+                  type="text"
+                  placeholder={t.storyTitlePlaceholder}
+                  value={storyTitle}
+                  onChange={(e) => setStoryTitle(e.target.value)}
+                  className="flex-1"
+                  maxLength={50}
+                />
+                <MotionButton
+                  onClick={handleSaveStory}
+                  disabled={!storyTitle.trim()}
+                  className="flex items-center gap-2"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <Save className="h-4 w-4" />
+                  {t.saveStory}
+                </MotionButton>
+              </div>
+              {savedMessage && (
+                <p className="text-green-600 mt-2 font-medium">{savedMessage}</p>
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
 
-        <div className="grid lg:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8">
-          <Card className="lg:col-span-2">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+        >
+          <Card className="lg:col-span-2 mb-6 md:mb-8">
             <CardHeader>
               <CardTitle>{t.completeStory}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4 max-h-96 overflow-y-auto pr-4">
                 {storyHistory.map((text, index) => (
-                  <div key={index} className="border-l-4 border-indigo-200 pl-4">
+                  <motion.div
+                    key={index}
+                    className="border-l-4 border-indigo-200 pl-4"
+                    variants={storyItemVariants}
+                    initial="hidden"
+                    whileInView="show"
+                    viewport={{ once: true, amount: 0.5 }}
+                  >
                     <Badge variant="outline" className="mb-2">
                       {t.step} {index + 1}
                     </Badge>
                     <p className="text-sm leading-relaxed">{text}</p>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
             </CardContent>
           </Card>
-        </div>
+        </motion.div>
 
-        <Card className="mb-6 md:mb-8">
-          <CardContent className="p-4 sm:p-6 space-y-4">
-            <Button onClick={onRestart} size="lg" className="w-full">
-              <RotateCcw className="h-5 w-5 mr-2" />
-              {t.startNewAdventure}
-            </Button>
-          </CardContent>
-        </Card>
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+        >
+          <Card>
+            <CardContent className="p-4 sm:p-6 space-y-4">
+              <MotionButton onClick={onRestart} size="lg" className="w-full" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                <RotateCcw className="h-5 w-5 mr-2" />
+                {t.startNewAdventure}
+              </MotionButton>
+            </CardContent>
+          </Card>
+        </motion.div>
       </div>
     </div>
   );
@@ -1254,10 +1496,10 @@ const StoryMvp: React.FC = () => {
       <AnimatePresence mode="wait">
         <motion.div
           key={gameState}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.5, ease: "easeInOut" }}
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -15 }}
+          transition={{ duration: 0.4, ease: "easeInOut" }}
           className="w-full"
         >
           {renderGameState()}
@@ -1265,10 +1507,13 @@ const StoryMvp: React.FC = () => {
       </AnimatePresence>
 
       <Dialog open={isAdoptionModalOpen} onOpenChange={setAdoptionModalOpen}>
-        <DialogContent>
+        <DialogContent
+          data-state={isAdoptionModalOpen ? "open" : "closed"}
+          className="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 duration-300"
+        >
           <DialogHeader>
             <DialogTitle>{t.confirmAdoption}</DialogTitle>
-            <DialogDescription>
+            <DialogDescription asChild>
               <div>
                 {pokemonToAdopt?.spriteUrl && (
                   <Image src={pokemonToAdopt.spriteUrl} alt={pokemonToAdopt.name} width={96} height={96} className="mx-auto my-4" />
