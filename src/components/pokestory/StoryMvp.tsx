@@ -429,16 +429,15 @@ const StoryScreen: React.FC<StoryScreenProps> = ({
             <CardTitle className="text-lg text-center">{t.journeyMap}</CardTitle>
           </CardHeader>
           <CardContent className="p-4">
-            <div className="w-full overflow-hidden">
-              <div className="flex items-center justify-between gap-2 py-4 min-w-0 px-4">
+            <div className="w-full overflow-x-auto pb-4">
+              <div className="flex items-center gap-x-6 py-4 px-4 min-w-max">
                 {Array.from({ length: 10 }, (_, index) => {
                   const currentMapStep = index + 1;
                   const node = mapNodes.find(n => n.step === currentMapStep);
                   const IconComponent = node ? getIconByName(node.iconName) : APP_ICON_MAP.MapPin;
                   const isActive = currentMapStep === (viewingHistoryStep || step);
                   const isCompleted = node?.completed || false;
-                  const isClickable = isCompleted;
-
+                  const isClickable = isCompleted || currentMapStep === step;
                   const prevNodeCompleted = mapNodes.some(n => n.step === currentMapStep - 1 && n.completed);
                   const isLineActive = prevNodeCompleted && isCompleted;
 
@@ -447,26 +446,29 @@ const StoryScreen: React.FC<StoryScreenProps> = ({
                       {currentMapStep > 1 && (
                         <div
                           className={`
-                            flex-1 h-1 rounded-full transition-colors duration-500 ease-in-out
+                            flex-shrink-0 w-16 h-1 rounded-full transition-colors duration-500 ease-in-out
                             ${isLineActive ? 'bg-green-500' : 'bg-gray-300'}
                           `}
                         />
                       )}
                       <div
                         className={`
-                          relative w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center border-2 transition-all
+                          flex-shrink-0 relative w-14 h-14 rounded-full flex items-center justify-center border-2 transition-all
                           ${isActive
                             ? 'bg-blue-500 border-blue-500 shadow-lg scale-110 animate-pulse'
                             : isCompleted
                               ? 'bg-green-500 border-green-500 hover:scale-105'
                               : 'bg-gray-200 border-gray-300'
                           }
-                          ${isClickable ? 'cursor-pointer hover:shadow-md' : 'cursor-default'}
+                          ${isClickable
+                            ? 'cursor-pointer hover:shadow-md'
+                            : 'cursor-default'
+                          }
                         `}
                         onClick={() => isClickable && onMapNodeClick(currentMapStep)}
                       >
                         <IconComponent
-                          className={`h-3 w-3 sm:h-4 sm:w-4 md:h-6 md:w-6 ${isActive || isCompleted ? 'text-white' : 'text-gray-400'
+                          className={`h-7 w-7 ${isActive || isCompleted ? 'text-white' : 'text-gray-400'
                             }`}
                         />
 
@@ -514,9 +516,9 @@ const StoryScreen: React.FC<StoryScreenProps> = ({
                       <span className="mt-2 text-sm font-medium text-gray-800 capitalize">
                         {element.name}
                       </span>
-                      {element.types?.length > 0 && (
+                      {element.type?.length > 0 && (
                         <div className="flex gap-1 mt-1">
-                          {element.types.map((type, i) => (
+                          {element.type.map((type, i) => (
                             <span
                               key={i}
                               className="px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-700"
