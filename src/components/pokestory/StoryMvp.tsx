@@ -3,7 +3,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
-import { ArrowLeft, Loader2, Play, RotateCcw, BookOpen } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { ArrowLeft, Loader2, Play, RotateCcw, BookOpen, Save } from 'lucide-react';
 import { PokeStoryElement, getFourDistinctPureTypePokemon, getRandomStoryElements, GENERATIONS, Generation } from '../../services/pokeapi';
 import { PokeStoryState, generateNextStoryStep, StoryStepResult, testGeminiConnection } from '../../services/gemini';
 import { APP_ICON_MAP } from '@/lib/app-icons';
@@ -25,6 +26,17 @@ interface MapNode {
   storyText: string;
   completed: boolean;
 }
+
+interface SavedStory {
+    id: string;
+    title: string;
+    protagonist: PokeStoryElement;
+    storyHistory: string[];
+    mapNodes: MapNode[];
+    allElements: PokeStoryElement[];
+    timestamp: number;
+}
+
 
 const getIconByName = (iconName: string): React.ComponentType<any> => {
   return APP_ICON_MAP[iconName as keyof typeof APP_ICON_MAP] || APP_ICON_MAP.MapPin;
@@ -62,7 +74,10 @@ const translations = {
     completeStory: "Historia Completa",
     viewing: "Viendo",
     current: "Actual",
-    nextStep: "Siguiente Paso"
+    nextStep: "Siguiente Paso",
+    saveStory: "Guardar Historia",
+    storyTitlePlaceholder: "Dale un título a tu épica aventura...",
+    storySaved: "¡Historia Guardada!",
   },
   en: {
     welcomeTitle: "Welcome to PokeStory",
@@ -95,7 +110,10 @@ const translations = {
     completeStory: "Complete Story",
     viewing: "Viewing",
     current: "Current",
-    nextStep: "Next Step"
+    nextStep: "Next Step",
+    saveStory: "Save Story",
+    storyTitlePlaceholder: "Give your epic adventure a title...",
+    storySaved: "Story Saved!",
   }
 };
 
@@ -607,6 +625,7 @@ interface EndScreenProps {
   onRestart: () => void;
   language: 'es' | 'en';
   mapNodes: MapNode[];
+  onSaveStory: (title: string) => void;
 }
 
 const EndScreen: React.FC<EndScreenProps> = ({
@@ -614,9 +633,18 @@ const EndScreen: React.FC<EndScreenProps> = ({
   protagonist,
   onRestart,
   language,
-  mapNodes
+  mapNodes,
+  onSaveStory,
 }) => {
   const t = translations[language];
+  const [title, setTitle] = useState('');
+  const [isSaved, setIsSaved] = useState(false);
+
+  const handleSaveClick = () => {
+    onSaveStory(title);
+    setIsSaved(true);
+  };
+
 
   return (
     <div className="min-h-screen p-6">
@@ -645,7 +673,7 @@ const EndScreen: React.FC<EndScreenProps> = ({
               <CardTitle>{t.completeStory}</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-6 max-h-96 overflow-y-auto">
+              <div className="space-y-6 max-h-96 overflow-y-auto pr-4">
                 {storyHistory.map((text, index) => (
                   <div key={index} className="border-l-4 border-indigo-200 pl-4">
                     <Badge variant="outline" className="mb-2">
@@ -659,12 +687,28 @@ const EndScreen: React.FC<EndScreenProps> = ({
           </Card>
         </div>
 
-        <div className="text-center">
-          <Button onClick={onRestart} size="lg" className="px-8 py-6">
-            <RotateCcw className="h-5 w-5 mr-2" />
-            {t.playAgain}
-          </Button>
-        </div>
+        <Card className="mb-8">
+          <CardContent className="p-6 space-y-4">
+             <Input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder={t.storyTitlePlaceholder}
+                className="text-lg"
+                disabled={isSaved}
+              />
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Button onClick={handleSaveClick} size="lg" className="flex-1" disabled={isSaved}>
+                <Save className="h-5 w-5 mr-2" />
+                {isSaved ? t.storySaved : t.saveStory}
+              </Button>
+              <Button onClick={onRestart} size="lg" variant="outline" className="flex-1">
+                <RotateCcw className="h-5 w-5 mr-2" />
+                {t.playAgain}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
@@ -673,7 +717,7 @@ const EndScreen: React.FC<EndScreenProps> = ({
 const StoryMvp: React.FC = () => {
   const [gameState, setGameState] = useState<'settings' | 'protagonistSelection' | 'story' | 'end' | 'error'>('settings');
   const [protagonists, setProtagonists] = useState<PokeStoryElement[]>([]);
-  const [selectedGenerations, setSelectedGenerations] = useState<number[]>(GENERATIONS.map(g => g.id));
+  const [selectedGenerations, setSelectedGenerations] = useState<number[]>([]);
   const [language, setLanguage] = useState<'es' | 'en'>('en');
   const [storyState, setStoryState] = useState<PokeStoryState>({
     currentStep: 1,
@@ -692,6 +736,8 @@ const StoryMvp: React.FC = () => {
   const [storyPokemonForDetail, setStoryPokemonForDetail] = useState<string | null>(null);
   const [isGeneratingStep, setIsGeneratingStep] = useState(false);
   const [currentStepElements, setCurrentStepElements] = useState<PokeStoryElement[]>([]);
+  
+  const t = translations[language];
 
   const handlePokemonSelectInModal = (pokemonName: string) => {
     setSelectedPokemonForDetail(pokemonName);
@@ -873,6 +919,38 @@ const StoryMvp: React.FC = () => {
     setViewingHistoryStep(step);
   }, [storyState.currentStep]);
 
+  const handleSaveStory = (title: string) => {
+    if (!storyState.protagonist) return;
+
+    const finalTitle = title.trim() === '' 
+      ? `${t.storyOf} ${storyState.protagonist.name}` 
+      : title;
+      
+    const fullStoryHistory = [...storyState.storyHistory, currentStory?.storyText || ''];
+
+    const newStory: SavedStory = {
+      id: new Date().toISOString(), 
+      title: finalTitle,
+      protagonist: storyState.protagonist,
+      storyHistory: fullStoryHistory,
+      mapNodes: mapNodes,
+      allElements: storyState.accumulatedElements,
+      timestamp: Date.now()
+    };
+
+    try {
+      const savedStoriesRaw = localStorage.getItem('pokeStories');
+      const savedStories: SavedStory[] = savedStoriesRaw ? JSON.parse(savedStoriesRaw) : [];
+      savedStories.push(newStory);
+      localStorage.setItem('pokeStories', JSON.stringify(savedStories));
+      console.log('Story saved successfully!', newStory);
+    } catch (error) {
+      console.error('Failed to save story to local storage:', error);
+
+    }
+  };
+
+
   const handleRestart = () => {
     setStoryState({
       currentStep: 1,
@@ -905,7 +983,6 @@ const StoryMvp: React.FC = () => {
   };
 
   const renderGameState = () => {
-    const t = translations[language];
 
     switch (gameState) {
       case 'protagonistSelection':
@@ -949,6 +1026,7 @@ const StoryMvp: React.FC = () => {
             onRestart={handleRestart}
             language={language}
             mapNodes={mapNodes}
+            onSaveStory={handleSaveStory}
           />
         );
 

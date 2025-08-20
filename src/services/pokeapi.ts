@@ -10,6 +10,7 @@ export interface PokemonDetails {
   height: number
   weight: number
   spriteUrl: string
+  cryUrl: string
   description: string
 }
 
@@ -104,6 +105,7 @@ export const getPokemonDetails = async (idOrName: string | number, language: str
       height: pokemonData.height,
       weight: pokemonData.weight,
       spriteUrl: pokemonData.sprites.other?.['official-artwork']?.front_default || pokemonData.sprites.front_default,
+      cryUrl: pokemonData.cries?.latest || pokemonData.cries?.legacy || '',
       description: description,
     }
   } catch (error) {
