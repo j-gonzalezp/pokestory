@@ -4,6 +4,9 @@
 
 ![PokeStory Banner](public/pokestories%20(1).png)
 
+### Play Now! 🚀
+**You can play PokeStory RPG directly at: [pokestory.vercel.app](https://pokestory.vercel.app)**
+
 ## 🌟 Overview
 
 **PokeStory RPG** is a revolutionary web-based Pokémon adventure game that combines traditional RPG mechanics with cutting-edge AI storytelling. Players embark on epic, procedurally generated journeys where every decision shapes their Pokémon's destiny through an innovative narrative framework inspired by sacred geometry.
@@ -185,6 +188,7 @@ npm run test:watch
 
 ## 🌐 Deployment
 
+
 ### Vercel (Recommended)
 1. Push your code to GitHub
 2. Connect your repository to Vercel
@@ -221,9 +225,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Contact
 
-- **Project**: [GitHub Repository](https://github.com/yourusername/pokestory-rpg)
-- **Issues**: [Report Bugs](https://github.com/yourusername/pokestory-rpg/issues)
-- **Features**: [Request Features](https://github.com/yourusername/pokestory-rpg/issues)
+- **Project**: [GitHub Repository](https://github.com/j-gonzalezp/pokestory)
+- **Issues**: [Report Bugs](https://github.com/j-gonzalezp/pokestory/issues)
+- **Features**: [Request Features](https://github.com/j-gonzalezp//pokestory/issues)
 
 ---
 
