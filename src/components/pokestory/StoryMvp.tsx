@@ -1,5 +1,5 @@
 "use client"
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback} from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
@@ -471,7 +471,7 @@ const CompanionSelection: React.FC<CompanionSelectionProps> = ({
                           variant="ghost"
                           size="icon"
                           className="absolute top-2 right-2 h-6 w-6 text-red-500 hover:text-red-700"
-                          onClick={(e) => handleReleaseClick(p, e as any)}
+                          onClick={(e) => handleReleaseClick(p, e as React.MouseEvent)}
                           title={t.releasePokemon}
                           whileHover={{ scale: 1.1 }}
                           whileTap={{ scale: 0.9 }}
