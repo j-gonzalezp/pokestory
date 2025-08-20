@@ -1,78 +1,78 @@
+
 export interface ApiListItem {
-  name: string
-  url: string
+  name: string;
+  url: string;
 }
 
 export interface PokemonDetails {
-  id: number
-  name: string
-  types: string[]
-  height: number
-  weight: number
-  spriteUrl: string
-  cryUrl: string
-  description: string
+  id: number;
+  name: string;
+  types: string[];
+  height: number;
+  weight: number;
+  spriteUrl: string;
+  cryUrl: string;
+  description: string;
 }
 
 export interface PokeStoryElement {
-  name: string
-  internalUrl: string
-  type: 'pokemon' | 'item' | 'location' | 'ability'
-  spriteUrl?: string
-  id: number
-  types?: string[]
+  name: string;
+  internalUrl?: string;
+  type: 'pokemon' | 'item' | 'location' | 'ability';
+  spriteUrl?: string;
 }
 
 interface FlavorTextEntry {
-  flavor_text: string
+  flavor_text: string;
   language: {
-    name: string
-    url: string
-  }
+    name: string;
+    url: string;
+  };
 }
 
 interface PokemonType {
-  slot: number
+  slot: number;
   type: {
-    name: string
-    url: string
-  }
+    name: string;
+    url: string;
+  };
 }
 
 interface PokemonSprite {
-  front_default: string
+  front_default: string;
   other?: {
     'official-artwork'?: {
-      front_default: string
-    }
-  }
+      front_default: string;
+    };
+  };
 }
 
 interface PokemonCries {
-  latest: string
-  legacy: string
+  latest: string;
+  legacy: string;
 }
 
 interface PokemonData {
-  id: number
-  name: string
-  types: PokemonType[]
-  height: number
-  weight: number
-  sprites: PokemonSprite
-  cries: PokemonCries
+  id: number;
+  name: string;
+  types: PokemonType[];
+  height: number;
+  weight: number;
+  sprites: PokemonSprite;
+  cries: PokemonCries;
 }
 
 interface SpeciesData {
-  flavor_text_entries: FlavorTextEntry[]
+  flavor_text_entries: FlavorTextEntry[];
 }
 
 export interface Generation {
-  id: number
-  name: string
-  displayName: string
-  pokemonRange: { start: number, end: number }
+  id: number;
+  name: string;
+  displayName: string;
+  pokemonRange: { start: number, end: number };
 }
+
 
 export const GENERATIONS: Generation[] = [
   { id: 1, name: 'generation-i', displayName: 'Gen I (Kanto)', pokemonRange: { start: 1, end: 151 } },
@@ -84,64 +84,66 @@ export const GENERATIONS: Generation[] = [
   { id: 7, name: 'generation-vii', displayName: 'Gen VII (Alola)', pokemonRange: { start: 722, end: 809 } },
   { id: 8, name: 'generation-viii', displayName: 'Gen VIII (Galar)', pokemonRange: { start: 810, end: 905 } },
   { id: 9, name: 'generation-ix', displayName: 'Gen IX (Paldea)', pokemonRange: { start: 906, end: 1025 } },
-]
+];
 
-const POKEAPI_BASE_URL = 'https://pokeapi.co/api/v2'
+const POKEAPI_BASE_URL = 'https://pokeapi.co/api/v2';
 
-const getRandomInt = (max: number): number => Math.floor(Math.random() * max) + 1
+
+const getRandomInt = (max: number): number => Math.floor(Math.random() * max) + 1;
 
 const getRandomIntInRange = (min: number, max: number): number =>
-  Math.floor(Math.random() * (max - min + 1)) + min
+  Math.floor(Math.random() * (max - min + 1)) + min;
+
 
 export const getRegions = async (): Promise<ApiListItem[]> => {
   try {
-    const response = await fetch(`${POKEAPI_BASE_URL}/region`)
-    if (!response.ok) throw new Error('Network response was not ok.')
-    const data = await response.json()
-    return data.results
+    const response = await fetch(`${POKEAPI_BASE_URL}/region`);
+    if (!response.ok) throw new Error('Network response was not ok.');
+    const data = await response.json();
+    return data.results;
   } catch (error) {
-    console.error("Error fetching regions:", error)
-    return []
+    console.error("Error fetching regions:", error);
+    return [];
   }
-}
+};
 
 export const getPokemonList = async (page: number, limit: number = 30): Promise<ApiListItem[]> => {
-  const offset = (page - 1) * limit
+  const offset = (page - 1) * limit;
   try {
-    const response = await fetch(`${POKEAPI_BASE_URL}/pokemon?limit=${limit}&offset=${offset}`)
-    if (!response.ok) throw new Error('Network response was not ok.')
-    const data = await response.json()
-    return data.results
+    const response = await fetch(`${POKEAPI_BASE_URL}/pokemon?limit=${limit}&offset=${offset}`);
+    if (!response.ok) throw new Error('Network response was not ok.');
+    const data = await response.json();
+    return data.results;
   } catch (error) {
-    console.error("Error fetching Pokémon list:", error)
-    return []
+    console.error("Error fetching Pokémon list:", error);
+    return [];
   }
-}
+};
 
 export const getPokemonDetails = async (idOrName: string | number, language: string = 'en'): Promise<PokemonDetails> => {
   try {
     const [pokemonRes, speciesRes] = await Promise.all([
       fetch(`${POKEAPI_BASE_URL}/pokemon/${idOrName}`),
       fetch(`${POKEAPI_BASE_URL}/pokemon-species/${idOrName}`)
-    ])
+    ]);
 
     if (!pokemonRes.ok || !speciesRes.ok) {
-      throw new Error(`Pokémon with id/name '${idOrName}' not found.`)
+      throw new Error(`Pokémon with id/name '${idOrName}' not found.`);
     }
 
-    const pokemonData: PokemonData = await pokemonRes.json()
-    const speciesData: SpeciesData = await speciesRes.json()
+    const pokemonData: PokemonData = await pokemonRes.json();
+    const speciesData: SpeciesData = await speciesRes.json();
 
-    const languageCode = language === 'es' ? 'es' : 'en'
+    const languageCode = language === 'es' ? 'es' : 'en';
     const descriptionEntry = speciesData.flavor_text_entries.find(
       (entry: FlavorTextEntry) => entry.language.name === languageCode
     ) || speciesData.flavor_text_entries.find(
       (entry: FlavorTextEntry) => entry.language.name === 'en'
-    )
-    
+    );
+
     const description = descriptionEntry
       ? descriptionEntry.flavor_text.replace(/[\n\f]/g, ' ')
-      : 'No description available for this Pokémon.'
+      : 'No description available for this Pokémon.';
 
     return {
       id: pokemonData.id,
@@ -152,194 +154,192 @@ export const getPokemonDetails = async (idOrName: string | number, language: str
       spriteUrl: pokemonData.sprites.other?.['official-artwork']?.front_default || pokemonData.sprites.front_default,
       cryUrl: pokemonData.cries?.latest || pokemonData.cries?.legacy || '',
       description: description,
-    }
+    };
   } catch (error) {
-    console.error(`Error fetching details for Pokémon ${idOrName}:`, error)
-    throw error
+    console.error(`Error fetching details for Pokémon ${idOrName}:`, error);
+    throw error;
   }
-}
+};
 
 export const getPokemonListByRegions = async (regionNames: string[]): Promise<ApiListItem[]> => {
-  if (regionNames.length === 0) return []
+  if (regionNames.length === 0) return [];
   try {
-    const regionPromises = regionNames.map(name => fetch(`${POKEAPI_BASE_URL}/region/${name}`))
-    const regionResponses = await Promise.all(regionPromises)
-    const regionJsonPromises = regionResponses.map(res => res.ok ? res.json() : null)
-    const regionsData = await Promise.all(regionJsonPromises)
+    const regionPromises = regionNames.map(name => fetch(`${POKEAPI_BASE_URL}/region/${name}`));
+    const regionResponses = await Promise.all(regionPromises);
+    const regionJsonPromises = regionResponses.map(res => res.ok ? res.json() : null);
+    const regionsData = await Promise.all(regionJsonPromises);
 
     const pokedexUrls = regionsData
       .filter(Boolean)
-      .flatMap(region => region.pokedexes.map((pokedex: { url: string }) => pokedex.url))
-    
-    const pokedexPromises = pokedexUrls.map(url => fetch(url))
-    const pokedexResponses = await Promise.all(pokedexPromises)
-    const pokedexJsonPromises = pokedexResponses.map(res => res.ok ? res.json() : null)
-    const pokedexesData = await Promise.all(pokedexJsonPromises)
+      .flatMap(region => region.pokedexes.map((pokedex: { url: string }) => pokedex.url));
 
-    const pokemonMap = new Map<string, ApiListItem>()
+    const pokedexPromises = pokedexUrls.map(url => fetch(url));
+    const pokedexResponses = await Promise.all(pokedexPromises);
+    const pokedexJsonPromises = pokedexResponses.map(res => res.ok ? res.json() : null);
+    const pokedexesData = await Promise.all(pokedexJsonPromises);
+
+    const pokemonMap = new Map<string, ApiListItem>();
     pokedexesData.filter(Boolean).forEach(pokedex => {
       pokedex.pokemon_entries.forEach((entry: { pokemon_species: ApiListItem }) => {
-        const species = entry.pokemon_species
+        const species = entry.pokemon_species;
         if (!pokemonMap.has(species.name)) {
-          const pokemonUrl = species.url.replace('/pokemon-species/', '/pokemon/')
-          pokemonMap.set(species.name, { name: species.name, url: pokemonUrl })
+          const pokemonUrl = species.url.replace('/pokemon-species/', '/pokemon/');
+          pokemonMap.set(species.name, { name: species.name, url: pokemonUrl });
         }
-      })
-    })
+      });
+    });
 
-    const uniquePokemonList = Array.from(pokemonMap.values())
-    uniquePokemonList.sort((a, b) => a.name.localeCompare(b.name))
-    
-    return uniquePokemonList
+    const uniquePokemonList = Array.from(pokemonMap.values());
+    uniquePokemonList.sort((a, b) => a.name.localeCompare(b.name));
+
+    return uniquePokemonList;
   } catch (error) {
-    console.error("Error fetching Pokémon by regions:", error)
-    return []
+    console.error("Error fetching Pokémon by regions:", error);
+    return [];
   }
-}
+};
 
 export const getLocationsByRegions = async (regionNames: string[]): Promise<ApiListItem[]> => {
-  if (regionNames.length === 0) return []
+  if (regionNames.length === 0) return [];
 
   try {
-    const regionPromises = regionNames.map(name => fetch(`${POKEAPI_BASE_URL}/region/${name}`))
-    const regionResponses = await Promise.all(regionPromises)
-    const regionJsonPromises = regionResponses.map(res => res.ok ? res.json() : null)
-    const regionsData = await Promise.all(regionJsonPromises)
+    const regionPromises = regionNames.map(name => fetch(`${POKEAPI_BASE_URL}/region/${name}`));
+    const regionResponses = await Promise.all(regionPromises);
+    const regionJsonPromises = regionResponses.map(res => res.ok ? res.json() : null);
+    const regionsData = await Promise.all(regionJsonPromises);
 
-    const locationMap = new Map<string, ApiListItem>()
+    const locationMap = new Map<string, ApiListItem>();
     regionsData.filter(Boolean).forEach(region => {
       region.locations.forEach((location: ApiListItem) => {
-        if(!locationMap.has(location.name)) {
-          locationMap.set(location.name, location)
+        if (!locationMap.has(location.name)) {
+          locationMap.set(location.name, location);
         }
-      })
-    })
+      });
+    });
 
-    const uniqueLocationList = Array.from(locationMap.values())
-    uniqueLocationList.sort((a, b) => a.name.localeCompare(b.name))
-    return uniqueLocationList
+    const uniqueLocationList = Array.from(locationMap.values());
+    uniqueLocationList.sort((a, b) => a.name.localeCompare(b.name));
+    return uniqueLocationList;
   } catch (error) {
-    console.error("Error fetching locations by regions:", error)
-    return []
+    console.error("Error fetching locations by regions:", error);
+    return [];
   }
-}
+};
 
 export const getFourDistinctPureTypePokemon = async (selectedGenerations: number[] = []): Promise<PokeStoryElement[]> => {
-  const pureTypePokemons: PokeStoryElement[] = []
-  const usedTypeIds = new Set<number>()
-  const totalTypes = 18
+  const pureTypePokemons: PokeStoryElement[] = [];
+  const usedTypeIds = new Set<number>();
+  const totalTypes = 18;
 
-  const generationsToUse = selectedGenerations.length > 0 ? selectedGenerations : GENERATIONS.map(g => g.id)
-  
+  const generationsToUse = selectedGenerations.length > 0 ? selectedGenerations : GENERATIONS.map(g => g.id);
+
   const allowedRanges = generationsToUse.map(genId =>
     GENERATIONS.find(g => g.id === genId)?.pokemonRange
-  ).filter(Boolean) as { start: number, end: number }[]
+  ).filter(Boolean) as { start: number, end: number }[];
 
   const isPokemonInAllowedGenerations = (pokemonId: number): boolean => {
-    return allowedRanges.some(range => pokemonId >= range.start && pokemonId <= range.end)
-  }
+    return allowedRanges.some(range => pokemonId >= range.start && pokemonId <= range.end);
+  };
 
   while (pureTypePokemons.length < 4 && usedTypeIds.size < totalTypes) {
-    const randomTypeId = getRandomInt(totalTypes)
-    if (usedTypeIds.has(randomTypeId)) continue
+    const randomTypeId = getRandomInt(totalTypes);
+    if (usedTypeIds.has(randomTypeId)) continue;
 
     try {
-      const typeResponse = await fetch(`${POKEAPI_BASE_URL}/type/${randomTypeId}`)
-      const typeData = await typeResponse.json()
-      usedTypeIds.add(randomTypeId)
+      const typeResponse = await fetch(`${POKEAPI_BASE_URL}/type/${randomTypeId}`);
+      const typeData = await typeResponse.json();
+      usedTypeIds.add(randomTypeId);
 
       const filteredPokemon = typeData.pokemon.filter((pokemonEntry: { pokemon: ApiListItem }) => {
-        const urlParts = pokemonEntry.pokemon.url.split('/')
-        const pokemonId = parseInt(urlParts[urlParts.length - 2])
-        return isPokemonInAllowedGenerations(pokemonId)
-      })
+        const urlParts = pokemonEntry.pokemon.url.split('/');
+        const pokemonId = parseInt(urlParts[urlParts.length - 2]);
+        return isPokemonInAllowedGenerations(pokemonId);
+      });
 
-      if (filteredPokemon.length === 0) continue
+      if (filteredPokemon.length === 0) continue;
 
-      const shuffledPokemon = filteredPokemon.sort(() => 0.5 - Math.random())
+      const shuffledPokemon = filteredPokemon.sort(() => 0.5 - Math.random());
 
       for (const pokemonEntry of shuffledPokemon) {
-        const urlParts = pokemonEntry.pokemon.url.split('/')
-        const pokemonId = parseInt(urlParts[urlParts.length - 2])
-        
-        try {
-          const pokemonResponse = await fetch(`${POKEAPI_BASE_URL}/pokemon/${pokemonId}`)
-          const pokemonData = await pokemonResponse.json()
+        const urlParts = pokemonEntry.pokemon.url.split('/');
+        const pokemonId = parseInt(urlParts[urlParts.length - 2]);
 
-          if (pokemonData.types.length === 1) {
+        try {
+          const pokemonResponse = await fetch(`${POKEAPI_BASE_URL}/pokemon/${pokemonId}`);
+          const pokemonData: PokemonData = await pokemonResponse.json();
+
+          if (pokemonData.types.length === 1 && !pureTypePokemons.some(p => p.name === pokemonData.name)) {
             pureTypePokemons.push({
               name: pokemonData.name,
               internalUrl: `/pokemon/${pokemonData.name}`,
               type: 'pokemon',
               spriteUrl: pokemonData.sprites.other?.['official-artwork']?.front_default || pokemonData.sprites.front_default,
-              id: pokemonData.id,
-              types: pokemonData.types.map((t: PokemonType) => t.type.name)
-            })
-            break
+            });
+            break;
           }
         } catch (pokemonError) {
-          console.error(`Error fetching pokemon ${pokemonId}:`, pokemonError)
-          continue
+          console.error(`Error fetching pokemon ${pokemonId}:`, pokemonError);
+          continue;
         }
       }
     } catch (error) {
-      console.error(`Error processing type ID ${randomTypeId}:`, error)
+      console.error(`Error processing type ID ${randomTypeId}:`, error);
     }
   }
-  
-  return pureTypePokemons
-}
 
+  return pureTypePokemons;
+};
 
 export const getRandomStoryElements = async (count: number = 3, selectedGenerations: number[] = []): Promise<PokeStoryElement[]> => {
-  const elements: PokeStoryElement[] = []
-  const totalLocations = 836
-  
-  const generationsToUse = selectedGenerations.length > 0 ? selectedGenerations : GENERATIONS.map(g => g.id)
-  
+  const elements: PokeStoryElement[] = [];
+  const totalLocations = 836;
+
+  const generationsToUse = selectedGenerations.length > 0 ? selectedGenerations : GENERATIONS.map(g => g.id);
+
   const allowedRanges = generationsToUse.map(genId =>
     GENERATIONS.find(g => g.id === genId)?.pokemonRange
-  ).filter(Boolean) as { start: number, end: number }[]
+  ).filter(Boolean) as { start: number, end: number }[];
 
-  const getRandomPokemonFromGenerations = (): number => {
-    const randomRange = allowedRanges[Math.floor(Math.random() * allowedRanges.length)]
-    return getRandomIntInRange(randomRange.start, randomRange.end)
-  }
+  const getRandomPokemonIdFromGenerations = (): number => {
+    if (allowedRanges.length === 0) {
+   
+      return getRandomIntInRange(GENERATIONS[0].pokemonRange.start, GENERATIONS[0].pokemonRange.end);
+    }
+    const randomRange = allowedRanges[Math.floor(Math.random() * allowedRanges.length)];
+    return getRandomIntInRange(randomRange.start, randomRange.end);
+  };
 
   for (let i = 0; i < count; i++) {
     try {
       if (Math.random() > 0.5 && allowedRanges.length > 0) {
-        const randomId = getRandomPokemonFromGenerations()
-        const res = await fetch(`${POKEAPI_BASE_URL}/pokemon/${randomId}`)
-        if (!res.ok) throw new Error(`Pokemon ${randomId} not found`)
-        
-        const data = await res.json()
+        const randomId = getRandomPokemonIdFromGenerations();
+        const res = await fetch(`${POKEAPI_BASE_URL}/pokemon/${randomId}`);
+        if (!res.ok) throw new Error(`Pokemon ${randomId} not found`);
+
+        const data: PokemonData = await res.json();
         elements.push({
           name: data.name,
           internalUrl: `/pokemon/${data.name}`,
           type: 'pokemon',
           spriteUrl: data.sprites.other?.['official-artwork']?.front_default || data.sprites.front_default,
-          id: data.id,
-          types: data.types.map((t: PokemonType) => t.type.name)
-        })
-      } else {
-        const randomId = getRandomInt(totalLocations)
-        const res = await fetch(`${POKEAPI_BASE_URL}/location/${randomId}`)
-        if (!res.ok) throw new Error(`Location ${randomId} not found`)
-        
-        const data: ApiListItem & { id: number } = await res.json()
+        });
+      } else { 
+        const randomId = getRandomInt(totalLocations);
+        const res = await fetch(`${POKEAPI_BASE_URL}/location/${randomId}`);
+        if (!res.ok) throw new Error(`Location ${randomId} not found`);
+
+        const data: ApiListItem & { id: number } = await res.json();
         elements.push({
           name: data.name,
           internalUrl: `/locations/${data.name}`,
           type: 'location',
-          id: -data.id
-        })
+        });
       }
     } catch (error) {
-      console.error("Error fetching a random story element:", error)
-      i--
+      console.error("Error fetching a random story element:", error);
+      i--;
     }
   }
-  
-  return elements
-}
+
+  return elements;
+};

@@ -1,3 +1,4 @@
+
 import {
   Home, Flame, TreePine, Wind, Waves, Sparkles, MapPin, Play, RotateCcw,
   ArrowLeft, Loader2, Globe, Languages, Mountain, Castle, Sword, Shield,
@@ -17,6 +18,7 @@ import {
   Music, Drum, Guitar, Piano,
   Pill, Syringe, Bandage, Hospital,
   Microscope, Beaker, Atom, Magnet, Scale, Ruler, Calculator,
+  PlusCircle, XCircle 
 } from 'lucide-react';
 
 export const APP_ICON_MAP: { [key: string]: React.ComponentType<React.SVGProps<SVGSVGElement>> } = {
@@ -38,13 +40,14 @@ export const APP_ICON_MAP: { [key: string]: React.ComponentType<React.SVGProps<S
   Music, Drum, Guitar, Piano,
   Pill, Syringe, Bandage, Hospital,
   Microscope, Beaker, Atom, Magnet, Scale, Ruler, Calculator,
+  PlusCircle, XCircle,
 };
 
 
 export const STORY_ICON_NAMES: string[] = [
   'Home', 'Flame', 'TreePine', 'Wind', 'Waves', 'Sparkles', 'MapPin', 'Mountain', 'Castle', 'Sword', 'Shield',
   'Star', 'Sun', 'Moon', 'Cloud', 'Zap', 'Heart', 'Eye', 'Diamond', 'Gem', 'Crown',
-  'Key', 'Lock', 'Footprints', 'Compass', 'Telescope', 'BookOpen', 'Scroll', 'Feather', 'Wand2', 
+  'Key', 'Lock', 'Footprints', 'Compass', 'Telescope', 'BookOpen', 'Scroll', 'Feather', 'Wand2',
   'Rabbit', 'Fish', 'Bird', 'Bug', 'Flower', 'Leaf', 'Snowflake',
   'Navigation', 'Route', 'Signpost', 'Milestone', 'Target', 'Locate',
   'Flower2', 'Cherry', 'CloudSnow', 'CloudRain', 'Rainbow', 'Sunrise', 'Sunset', 'Eclipse',
@@ -59,4 +62,4 @@ export const STORY_ICON_NAMES: string[] = [
   'Music', 'Drum', 'Guitar', 'Piano',
   'Pill', 'Syringe', 'Bandage', 'Hospital',
   'Microscope', 'Beaker', 'Atom', 'Magnet', 'Scale', 'Ruler', 'Calculator',
-]
+];

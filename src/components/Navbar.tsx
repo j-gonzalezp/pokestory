@@ -4,10 +4,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { motion } from "framer-motion";
-import { usePathname } from "next/navigation"; // 1. Importa el hook usePathname
+import { usePathname } from "next/navigation"; 
 
 export default function Navbar() {
-  const pathname = usePathname(); // 2. Obtén la ruta actual
+  const pathname = usePathname();
 
   return (
     <motion.nav
@@ -44,12 +44,12 @@ export default function Navbar() {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.3, delay: 0.5 }}
         >
-          {/* 3. Aplica estilos condicionales a cada botón/enlace */}
+        
           <li className="hidden sm:block">
             <Button
               variant="ghost"
               className={`text-foreground hover:bg-accent/20 hover:text-accent-foreground ${
-                pathname === "/" ? "bg-accent/50 text-accent-foreground" : "" // Si la ruta es '/', aplica esta clase
+                pathname === "/" ? "bg-accent/50 text-accent-foreground" : ""
               }`}
               asChild
             >
@@ -60,7 +60,7 @@ export default function Navbar() {
             <Button
               variant="ghost"
               className={`text-foreground hover:bg-accent/20 hover:text-accent-foreground ${
-                pathname === "/pokedex" ? "bg-accent/50 text-accent-foreground" : "" // Si la ruta es '/pokedex', aplica esta clase
+                pathname === "/pokedex" ? "bg-accent/50 text-accent-foreground" : "" 
               }`}
               asChild
             >
@@ -71,7 +71,7 @@ export default function Navbar() {
             <Button
               variant="ghost"
               className={`text-foreground hover:bg-accent/20 hover:text-accent-foreground ${
-                pathname === "/about" ? "bg-accent/50 text-accent-foreground" : "" // Si la ruta es '/about', aplica esta clase
+                pathname === "/about" ? "bg-accent/50 text-accent-foreground" : ""
               }`}
               asChild
             >
@@ -82,7 +82,7 @@ export default function Navbar() {
             <Button
               variant="ghost"
               className={`text-foreground hover:bg-accent/20 hover:text-accent-foreground ${
-                pathname === "/contact" ? "bg-accent/50 text-accent-foreground" : "" // Si la ruta es '/contact', aplica esta clase
+                pathname === "/contact" ? "bg-accent/50 text-accent-foreground" : ""
               }`}
               asChild
             >

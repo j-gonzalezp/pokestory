@@ -1,18 +1,20 @@
 "use client"
 
 import React from 'react'
-import { motion } from 'framer-motion'
+import { motion} from 'framer-motion'
 
 interface TypewriterTextProps {
   text: string
   delay?: number
   wordDelay?: number
+  onComplete?: () => void 
 }
 
 const TypewriterText: React.FC<TypewriterTextProps> = ({
   text,
   delay = 0,
   wordDelay = 0.05,
+  onComplete, 
 }) => {
   const words = text.split(' ')
 
@@ -37,6 +39,12 @@ const TypewriterText: React.FC<TypewriterTextProps> = ({
       variants={containerVariants}
       initial="hidden"
       animate="visible"
+      onAnimationComplete={() => {
+       
+        if (onComplete) {
+          onComplete()
+        }
+      }}
       className="whitespace-pre-wrap"
     >
       {words.map((word, index) => (

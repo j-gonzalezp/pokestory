@@ -34,13 +34,7 @@ export function Pagination({ currentPage, totalPages, onPageChange }: Pagination
   };
 
  
-  const disabledVariants = {
-    disabled: {
-      opacity: 0.5,
-      scale: 0.95,
-      transition: { duration: 0.2 }
-    }
-  };
+
 
   return (
     <div className="flex items-center space-x-2">

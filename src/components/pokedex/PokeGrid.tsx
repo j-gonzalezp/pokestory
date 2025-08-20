@@ -1,6 +1,6 @@
 "use client"
-import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { motion, AnimatePresence, useInView } from 'framer-motion';
+import React, { useState, useEffect, useMemo } from 'react';
+import { motion, AnimatePresence} from 'framer-motion';
 import ParallaxBackground from '../ui/ParallaxBackground';
 import { ApiListItem } from '../../types';
 import { getPokemonList } from '../../services/pokeapi';

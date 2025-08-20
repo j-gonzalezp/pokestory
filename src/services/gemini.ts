@@ -1,32 +1,36 @@
-
-import { PokeStoryElement } from "./pokeapi"
-import { GoogleGenAI } from "@google/genai"
-import { STORY_ICON_NAMES } from '@/lib/app-icons'; 
+import { PokeStoryElement } from "./pokeapi";
+import { PlayerPokemon } from "./persistence";
+import { StoryChoiceEffects } from "./gameLogic";
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import { STORY_ICON_NAMES } from '@/lib/app-icons';
 
 export interface PokeStoryState {
-  currentStep: number
-  protagonist: PokeStoryElement | null
-  accumulatedElements: PokeStoryElement[]
-  storyHistory: string[]
+  currentStep: number;
+  protagonist: PlayerPokemon | null;
+  accumulatedElements: PokeStoryElement[];
+  storyHistory: string[];
+}
+
+export interface StoryOption {
+  text: string;
+  effects: StoryChoiceEffects;
 }
 
 export interface StoryStepResult {
-  storyText: string
-  options: string[]
-  iconName?: string
+  storyText: string;
+  options: StoryOption[];
+  iconName?: string;
 }
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY
+const GEMINI_API_KEY = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
 
 if (!GEMINI_API_KEY) {
-  console.error("GEMINI_API_KEY is not configured in environment variables")
-  throw new Error("The GEMINI_API_KEY environment variable is not configured. Please set it in your .env file")
+  console.error("GEMINI_API_KEY is not configured in environment variables");
+  throw new Error("The GEMINI_API_KEY environment variable is not configured. Please set it in your .env file");
 }
 
-const ai = new GoogleGenAI({
-  apiKey: GEMINI_API_KEY
-});
-
+const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
 const AVAILABLE_ICONS = STORY_ICON_NAMES;
 
@@ -55,171 +59,135 @@ const NARRATIVE_FRAMEWORK = {
     { step: 9, phase: "Phase V: The Dodecahedron (Aether)", title: "The Epiphany and the Climax", description: "From the depths of the crisis, the protagonist emerges with a new understanding. All the pieces fall into place. Armed with this revelation, they face the final climax with wisdom." },
     { step: 10, phase: "Phase V: The Dodecahedron (Aether)", title: "The New Cosmos", description: "The resolution. The conflict is resolved and a new order is established. The protagonist integrates the lesson learned and transforms their world. The end is not a return to the beginning, but the creation of a new, more complete universe." }
   ]
-}
+};
 
 const buildPrompt = (
   currentState: PokeStoryState,
   newElements: PokeStoryElement[],
-  narrativeGuide: { step: number; phase: string; title: string; description: string },
+  narrativeGuide: { step: number; phase: string; title: string; description:string },
   language: 'es' | 'en' = 'es'
 ): string => {
+  const { protagonist } = currentState;
   const storyContext = currentState.storyHistory.length > 0
     ? `\n\nPrevious story context:\n${currentState.storyHistory.join('\n\n')}`
-    : ''
+    : '';
+
+  const protagonistState = protagonist
+    ? `
+- Protagonist: ${protagonist.nickname} the ${protagonist.speciesName} (Level ${protagonist.level})
+- Current State: ${protagonist.stats.currentHP}/${protagonist.stats.maxHP} HP, ${protagonist.stats.currentMorale}/${protagonist.stats.maxMorale} Morale
+- Traits: ${protagonist.traits.join(', ') || "None"}
+`
+    : '- Protagonist: A brave trainer';
 
   const prompts = {
     es: `
-Eres un maestro narrador creando una aventura inmersiva de Pokémon. Sigue estas pautas estrictamente:
+Eres un Game Master para un RPG de Pokémon. Tu rol es crear una narrativa y las consecuencias de las decisiones del jugador.
 
 **Paso Narrativo Actual:**
 - Paso: ${narrativeGuide.step}/10
-- Fase: ${narrativeGuide.phase}
 - Título: ${narrativeGuide.title}
 - Objetivo: ${narrativeGuide.description}
 
+**Estado del Protagonista:**
+${protagonistState}
+
 **Elementos de la Historia:**
-- Protagonista: ${currentState.protagonist ? currentState.protagonist.name : "Un entrenador valiente"}
-- Elementos actuales: ${currentState.accumulatedElements.map(e => e.name).join(", ") || "Ninguno todavía"}
 - Nuevos elementos a incorporar: ${newElements.map(e => e.name).join(", ") || "Ninguno"}
 ${storyContext}
 
-**Iconos Disponibles para el Mapa:**
-${AVAILABLE_ICONS.join(', ')}
+**Iconos Disponibles:** ${AVAILABLE_ICONS.join(', ')}
 
-**Requisitos:**
-1. Escribe un segmento de historia convincente (100-200 palabras)
-2. Incorpora TODOS los nuevos elementos de manera natural en la narrativa
-3. Sigue el tono emocional y objetivos de la fase actual
-4. Crea exactamente 4 opciones significativas que hagan avanzar la historia
-5. Mantén consistencia con eventos previos de la historia
-6. Usa descripciones vívidas y diálogo atractivo
-7. ESCRIBE TODO EL TEXTO EN ESPAÑOL
-8. **SELECCIONA UN ÍCONO** de la lista disponible que mejor represente este momento de la historia
+**REQUISITOS ESTRICTOS:**
+1.  Escribe un segmento de historia (100-200 palabras) que siga el objetivo narrativo e incorpore los nuevos elementos.
+2.  Crea EXACTAMENTE 4 opciones de decisión para el jugador.
+3.  Para CADA opción, asigna un objeto \`effects\` con consecuencias numéricas:
+    - \`xp\`: Experiencia ganada (0-100). Acciones valientes o inteligentes dan más XP.
+    - \`hp\`: Cambio en la vida (ej: -10 por recibir daño, 0 si no hay riesgo, 5 por encontrar comida).
+    - \`morale\`: Cambio en la moral (ej: -15 por un susto, 10 por una victoria).
+    - \`newTrait\`: Un nuevo rasgo de personalidad (string) si la acción es definitoria (ej: "Estratega", "Temerario"). Si no hay rasgo, usa \`null\`.
+4.  Selecciona UN icono de la lista que represente el momento.
+5.  TODO el texto debe estar en ESPAÑOL.
 
-**Formato de Respuesta - DEBE ser JSON válido:**
+**Formato de Respuesta - DEBE ser JSON VÁLIDO:**
 {
   "storyText": "Tu texto de historia aquí...",
   "options": [
-    "Descripción de la primera opción",
-    "Descripción de la segunda opción",
-    "Descripción de la tercera opción",
-    "Descripción de la cuarta opción"
+    { "text": "Descripción de la opción 1", "effects": { "xp": 50, "hp": -10, "morale": 5, "newTrait": null } },
+    { "text": "Descripción de la opción 2", "effects": { "xp": 20, "hp": 0, "morale": -5, "newTrait": "Cauto" } },
+    { "text": "Descripción de la opción 3", "effects": { "xp": 35, "hp": 0, "morale": 10, "newTrait": null } },
+    { "text": "Descripción de la opción 4", "effects": { "xp": 10, "hp": 0, "morale": -10, "newTrait": null } }
   ],
   "iconName": "NombreDelIconoElegido"
 }
-
-**Guía para Selección de Iconos:**
-- Home: Inicio del viaje, hogar, lugar seguro
-- Flame: Peligro, combate, pasión, urgencia
-- TreePine: Bosques, naturaleza, crecimiento
-- Wind: Cambio, movimiento, libertad
-- Waves: Emociones intensas, crisis, fluidez
-- Mountain: Desafíos, obstáculos, elevación
-- Castle: Poder, autoridad, fortalezas
-- Sword/Shield: Combate, defensa, conflicto
-- Star/Sparkles: Magia, esperanza, revelación
-- Sun/Moon: Tiempo, ciclos, iluminación
-- Crown/Gem: Tesoros, realeza, valor
-- Key/Lock: Secretos, misterios, acceso
-- Path/Footprints: Viaje, seguimiento, exploración
-- Compass: Dirección, navegación, búsqueda
-- Crystal/Wand2: Magia, poder místico
-- Cave: Misterio, profundidad, refugio
-- Volcano: Peligro extremo, transformación
-- Map: Ubicación, exploración, descubrimiento
-
-Escribe el segmento de historia ahora:
-    `,
+`,
     en: `
-You are a master storyteller creating an immersive Pokémon adventure story. Follow these guidelines strictly:
+You are a Game Master for a Pokémon RPG. Your role is to create a narrative and the consequences of the player's decisions.
 
 **Current Narrative Step:**
 - Step: ${narrativeGuide.step}/10
-- Phase: ${narrativeGuide.phase}
 - Title: ${narrativeGuide.title}
 - Objective: ${narrativeGuide.description}
 
+**Protagonist's State:**
+${protagonistState}
+
 **Story Elements:**
-- Protagonist: ${currentState.protagonist ? currentState.protagonist.name : "A brave trainer"}
-- Current elements: ${currentState.accumulatedElements.map(e => e.name).join(", ") || "None yet"}
 - New elements to incorporate: ${newElements.map(e => e.name).join(", ") || "None"}
 ${storyContext}
 
-**Available Icons for the Map:**
-${AVAILABLE_ICONS.join(', ')}
+**Available Icons:** ${AVAILABLE_ICONS.join(', ')}
 
-**Requirements:**
-1. Write a compelling story segment (100-200 words)
-2. Incorporate ALL new elements naturally into the narrative
-3. Follow the current phase's emotional tone and objectives
-4. Create exactly 4 meaningful choices that advance the story
-5. Maintain consistency with previous story events
-6. Use vivid descriptions and engaging dialogue
-7. WRITE ALL TEXT IN ENGLISH
-8. **SELECT AN ICON** from the available list that best represents this story moment
+**STRICT REQUIREMENTS:**
+1.  Write a story segment (100-200 words) following the narrative objective and incorporating the new elements.
+2.  Create EXACTLY 4 decision options for the player.
+3.  For EACH option, assign an \`effects\` object with numerical consequences:
+    - \`xp\`: Experience gained (0-100). Brave or clever actions grant more XP.
+    - \`hp\`: Change in health (e.g., -10 for taking damage, 0 for no risk, 5 for finding food).
+    - \`morale\`: Change in morale (e.g., -15 for a scare, 10 for a victory).
+    - \`newTrait\`: A new personality trait (string) if the action is defining (e.g., "Strategist", "Reckless"). If no trait, use \`null\`.
+4.  Select ONE icon from the list that represents the moment.
+5.  ALL text must be in ENGLISH.
 
-**Response Format - MUST be valid JSON:**
+**Response Format - MUST be VALID JSON:**
 {
   "storyText": "Your story text here...",
   "options": [
-    "First choice description",
-    "Second choice description",
-    "Third choice description",
-    "Fourth choice description"
+    { "text": "Description for option 1", "effects": { "xp": 50, "hp": -10, "morale": 5, "newTrait": null } },
+    { "text": "Description for option 2", "effects": { "xp": 20, "hp": 0, "morale": -5, "newTrait": "Cautious" } },
+    { "text": "Description for option 3", "effects": { "xp": 35, "hp": 0, "morale": 10, "newTrait": null } },
+    { "text": "Description for option 4", "effects": { "xp": 10, "hp": 0, "morale": -10, "newTrait": null } }
   ],
   "iconName": "ChosenIconName"
 }
+`
+  };
 
-**Icon Selection Guide:**
-- Home: Journey start, home, safe place
-- Flame: Danger, combat, passion, urgency
-- TreePine: Forests, nature, growth
-- Wind: Change, movement, freedom
-- Waves: Intense emotions, crisis, fluidity
-- Mountain: Challenges, obstacles, elevation
-- Castle: Power, authority, fortresses
-- Sword/Shield: Combat, defense, conflict
-- Star/Sparkles: Magic, hope, revelation
-- Sun/Moon: Time, cycles, illumination
-- Crown/Gem: Treasures, royalty, value
-- Key/Lock: Secrets, mysteries, access
-- Path/Footprints: Journey, tracking, exploration
-- Compass: Direction, navigation, search
-- Crystal/Wand2: Magic, mystical power
-- Cave: Mystery, depth, shelter
-- Volcano: Extreme danger, transformation
-- Map: Location, exploration, discovery
-
-Write the story segment now:
-    `
-  }
-
-  return prompts[language].trim()
-}
+  return prompts[language].trim();
+};
 
 const validateStoryResponse = (response: unknown): response is StoryStepResult => {
   const res = response as Record<string, unknown>;
-  return (
-    typeof response === 'object' &&
-    response !== null &&
-    typeof res.storyText === 'string' &&
-    Array.isArray(res.options) &&
-    res.options.length === 4 &&
-    res.options.every((option: unknown) => typeof option === 'string') &&
-    (typeof res.iconName === 'string' || res.iconName === undefined)
+  if (typeof res !== 'object' || res === null || typeof res.storyText !== 'string' || !Array.isArray(res.options) || res.options.length !== 4) {
+    return false;
+  }
+  return res.options.every((opt: StoryOption) =>
+    typeof opt === 'object' &&
+    opt !== null &&
+    typeof opt.text === 'string' &&
+    typeof opt.effects === 'object' &&
+    opt.effects !== null &&
+    typeof opt.effects.xp === 'number' &&
+    typeof opt.effects.hp === 'number' &&
+    typeof opt.effects.morale === 'number' &&
+    (typeof opt.effects.newTrait === 'string' || opt.effects.newTrait === null)
   );
-}
+};
 
 const cleanJsonResponse = (text: string): string => {
-  text = text.replace(/```json\n?/g, '').replace(/```\n?/g, '')
-
-  const jsonMatch = text.match(/\{[\s\S]*\}/)
-  if (jsonMatch) {
-    return jsonMatch[0]
-  }
-
-  return text.trim()
-}
+  const match = text.match(/\{[\s\S]*\}/);
+  return match ? match[0] : text.trim();
+};
 
 const validateIconName = (iconName: string | undefined): string => {
   if (!iconName || !AVAILABLE_ICONS.includes(iconName)) {
@@ -227,7 +195,7 @@ const validateIconName = (iconName: string | undefined): string => {
     return 'MapPin';
   }
   return iconName;
-}
+};
 
 export const generateNextStoryStep = async (
   currentState: PokeStoryState,
@@ -236,112 +204,57 @@ export const generateNextStoryStep = async (
 ): Promise<StoryStepResult> => {
   try {
     if (currentState.currentStep < 1 || currentState.currentStep > 10) {
-      throw new Error(`Invalid step: ${currentState.currentStep}. Must be between 1 and 10.`)
+      throw new Error(`Invalid step: ${currentState.currentStep}.`);
     }
-
-    const narrativeGuide = NARRATIVE_FRAMEWORK[language].find(f => f.step === currentState.currentStep)
+    const narrativeGuide = NARRATIVE_FRAMEWORK[language].find(f => f.step === currentState.currentStep);
     if (!narrativeGuide) {
-      throw new Error(`No narrative guide found for step ${currentState.currentStep}`)
+      throw new Error(`No narrative guide found for step ${currentState.currentStep}`);
     }
 
-    console.log(`Generating story for step ${currentState.currentStep}: ${narrativeGuide.title}`)
+    console.log(`Generating story for step ${currentState.currentStep}: ${narrativeGuide.title}`);
+    const prompt = buildPrompt(currentState, newElements, narrativeGuide, language);
 
-    const prompt = buildPrompt(currentState, newElements, narrativeGuide, language)
-
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: prompt,
-      config: {
-        temperature: 0.7,
-        topK: 40,
-        topP: 0.95,
-        maxOutputTokens: 1000,
-        thinkingConfig: {
-          thinkingBudget: 0,
-        },
-      }
-    });
-
-    const responseText = response.text;
+    const result = await model.generateContent(prompt);
+    const responseText = result.response.text();
 
     if (!responseText) {
-      console.error("Gemini returned an empty text response. Full response object:", response);
-      throw new Error("Empty response from Gemini. Check your API configuration or prompt.");
+      throw new Error("Empty response from Gemini.");
     }
 
-    console.log("Raw Gemini response:", responseText.substring(0, 200) + "...")
-
-    const cleanedResponse = cleanJsonResponse(responseText)
-
-    let parsedResponse: unknown
-    try {
-      parsedResponse = JSON.parse(cleanedResponse)
-    } catch (parseError) {
-      console.error("Error parsing JSON:", parseError)
-      console.error("Cleaned response:", cleanedResponse)
-      throw new Error(`Error parsing JSON response: ${parseError}`)
-    }
+    const cleanedResponse = cleanJsonResponse(responseText);
+    const parsedResponse = JSON.parse(cleanedResponse);
 
     if (!validateStoryResponse(parsedResponse)) {
-      console.error("Invalid response:", parsedResponse)
-      throw new Error("Gemini's response does not have the expected format")
+      console.error("Invalid response structure:", parsedResponse);
+      throw new Error("Gemini's response does not have the expected RPG format.");
     }
 
-    parsedResponse.iconName = validateIconName(parsedResponse.iconName)
-
-    console.log("Story successfully generated with icon:", parsedResponse.iconName)
-
-    return parsedResponse as StoryStepResult
+    parsedResponse.iconName = validateIconName(parsedResponse.iconName);
+    return parsedResponse as StoryStepResult;
 
   } catch (error) {
-    console.error("Error in generateNextStoryStep:", error)
-
-    const fallbackMessages = {
-      es: {
-        storyText: `Lo siento, hubo un problema generando la historia en este momento. ${error instanceof Error ? error.message : 'Error desconocido'}`,
-        options: [
-          "Tratar de continuar la aventura",
-          "Explorar los alrededores",
-          "Revisar tu equipo",
-          "Tomar un descanso"
-        ],
-        iconName: "MapPin"
-      },
-      en: {
-        storyText: `Sorry, there was a problem generating the story at this moment. ${error instanceof Error ? error.message : 'Unknown error'}`,
-        options: [
-          "Try to continue the adventure",
-          "Explore the surroundings",
-          "Check your equipment",
-          "Take a break"
-        ],
-        iconName: "MapPin"
-      }
-    }
-
-    return fallbackMessages[language]
+    console.error("Error in generateNextStoryStep:", error);
+    const fallbackMessage = language === 'es' ? "Lo siento, hubo un problema generando la historia." : "Sorry, there was a problem generating the story.";
+    return {
+      storyText: `${fallbackMessage} ${error instanceof Error ? error.message : 'Unknown error'}`,
+      options: [
+        { text: language === 'es' ? "Intentar continuar" : "Try to continue", effects: { xp: 10, hp: 0, morale: 0, newTrait: null } },
+        { text: language === 'es' ? "Explorar los alrededores" : "Explore surroundings", effects: { xp: 10, hp: 0, morale: 0, newTrait: null } },
+        { text: language === 'es' ? "Revisar tu equipo" : "Check your gear", effects: { xp: 5, hp: 0, morale: 5, newTrait: null } },
+        { text: language === 'es' ? "Tomar un descanso" : "Take a break", effects: { xp: 0, hp: 5, morale: 5, newTrait: null } },
+      ],
+      iconName: "AlertTriangle"
+    };
   }
-}
+};
 
 export const testGeminiConnection = async (): Promise<boolean> => {
   try {
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: "Respond with a simple 'OK' if you can read this message.",
-      config: {
-        temperature: 0,
-        maxOutputTokens: 10,
-        thinkingConfig: {
-          thinkingBudget: 0,
-        },
-      }
-    });
-
-    const responseText = response.text;
-
+    const result = await model.generateContent("Respond with a simple 'OK' if you can read this message.");
+    const responseText = result.response.text();
     return responseText?.includes('OK') || false;
   } catch (error) {
     console.error("Gemini connection error:", error);
     return false;
   }
-}
+};

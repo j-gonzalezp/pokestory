@@ -98,13 +98,13 @@ describe('PokeGrid', () => {
     const searchInput = screen.getByPlaceholderText(/buscar pokémon/i);
     fireEvent.change(searchInput, { target: { value: 'pokemon1' } });
 
-    // Wait for search results - should show pokemon1, pokemon10, pokemon11, etc.
+
     await waitFor(() => {
       expect(screen.getByText(/^pokemon1$/i)).toBeVisible();
       expect(screen.getByText(/^pokemon10$/i)).toBeVisible();
     }, { timeout: 3000 });
 
-    // Wait for non-matching elements to be filtered out or have very low opacity
+
     await waitFor(() => {
       const pokemon2Element = screen.queryByText(/^pokemon2$/i);
       if (pokemon2Element) {
@@ -123,21 +123,19 @@ describe('PokeGrid', () => {
       expect(screen.getByText(/^pokemon1$/i)).toBeInTheDocument();
     });
 
-    // Check if pagination controls exist
+
     const nextButton = screen.queryByRole('button', { name: /next/i });
     const prevButton = screen.queryByRole('button', { name: /previous|prev/i });
     
     if (!nextButton || !prevButton) {
-      // If pagination controls don't exist, skip the pagination test
+
       console.warn('Pagination controls not found, skipping pagination test');
       return;
     }
 
-    // Check initial state
     expect(screen.queryByText(/^pokemon31$/i)).not.toBeInTheDocument();
     expect(prevButton).toBeDisabled();
 
-    // Go to next page
     fireEvent.click(nextButton);
 
     await waitFor(() => {
@@ -170,7 +168,7 @@ describe('PokeGrid', () => {
       expect(screen.getByText(/^pokemon5$/i)).toBeVisible();
     }, { timeout: 3000 });
     
-    // Wait for non-favorite elements to be filtered out
+
     await waitFor(() => {
       const pokemon1Element = screen.queryByText(/^pokemon1$/i);
       const pokemon3Element = screen.queryByText(/^pokemon3$/i);
@@ -186,13 +184,13 @@ describe('PokeGrid', () => {
       }
     }, { timeout: 3000 });
 
-    // Click the same button again to toggle back to show all
+
     fireEvent.click(favoritesButton);
     
     await waitFor(() => {
       expect(screen.getByText(/^pokemon2$/i)).toBeVisible();
       expect(screen.getByText(/^pokemon5$/i)).toBeVisible();
-      // Check that pokemon1 and pokemon3 are now visible again
+     
       expect(screen.getByText(/^pokemon1$/i)).toBeVisible();
       expect(screen.getByText(/^pokemon3$/i)).toBeVisible();
     }, { timeout: 3000 });
@@ -221,7 +219,7 @@ describe('PokeGrid', () => {
       expect(screen.getByText(/^pokemon1$/i)).toBeInTheDocument();
     });
 
-    // Find the star button by looking for buttons within the pokemon card
+
     const pokemon1Card = screen.getByText(/^pokemon1$/i).closest('[class*="cursor-pointer"]') || 
                          screen.getByText(/^pokemon1$/i).closest('.bg-card');
     
@@ -233,7 +231,7 @@ describe('PokeGrid', () => {
       expect(starButton).toBeInTheDocument();
       fireEvent.click(starButton!);
     } else {
-      // Fallback: find the first button that contains an svg (likely the star)
+    
       const buttons = screen.getAllByRole('button');
       const starButton = buttons.find(btn => 
         btn.querySelector('svg') && !btn.textContent?.trim()
