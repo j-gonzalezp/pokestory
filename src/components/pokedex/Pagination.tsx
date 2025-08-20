@@ -13,16 +13,16 @@ export function Pagination({ currentPage, totalPages, onPageChange }: Pagination
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 1}
       >
-        Anterior
+        Previous
       </Button>
       <span>
-        Página {currentPage} de {totalPages}
+        Page {currentPage} of {totalPages}
       </span>
       <Button
         onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage === totalPages}
       >
-        Siguiente
+        Next
       </Button>
     </div>
   );

@@ -8,7 +8,7 @@ interface FavoritesToggleProps {
 export function FavoritesToggle({ isFiltered, onToggle }: FavoritesToggleProps) {
   return (
     <Button onClick={onToggle} variant={isFiltered ? "default" : "outline"}>
-      {isFiltered ? "Mostrar Todos" : "Mostrar Favoritos"}
+      {isFiltered ? "Show All" : "Show Favorites"}
     </Button>
   );
 }

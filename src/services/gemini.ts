@@ -221,7 +221,6 @@ const cleanJsonResponse = (text: string): string => {
 }
 
 const validateIconName = (iconName: string | undefined): string => {
-  // Now, check against the consistent AVAILABLE_ICONS list
   if (!iconName || !AVAILABLE_ICONS.includes(iconName)) {
     console.warn(`Invalid or missing icon name: ${iconName}. Using default MapPin.`);
     return 'MapPin';

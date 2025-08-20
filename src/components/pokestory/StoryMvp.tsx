@@ -11,7 +11,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import PokeGrid from '../pokedex/PokeGrid';
 import { PokedexDetail } from '../pokedex/PokedexDetail';
 import { useFavorites } from '@/hooks/useFavorites';
-import { PokeCard } from '../pokedex/PokeCard';
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
+
+import { motion, AnimatePresence } from 'framer-motion';
+import TypewriterText from '@/components/animations/TypewriterText';
+
 
 interface MapNode {
   step: number;
@@ -53,7 +57,7 @@ const translations = {
     journeyMap: "Mapa del Viaje",
     currentElements: "Pokemones Actuales",
     whatDoYouDecide: "¿Qué decides hacer?",
-    startPokedex: "Iniciar Pokedex",
+    startPokedex: "Pokédex",
     backToPresent: "Volver al Presente",
     completeStory: "Historia Completa",
     viewing: "Viendo",
@@ -86,7 +90,7 @@ const translations = {
     journeyMap: "Journey Map",
     currentElements: "Current Pokemon",
     whatDoYouDecide: "What do you decide to do?",
-    startPokedex: "Start Pokedex",
+    startPokedex: "Pokédex",
     backToPresent: "Back to Present",
     completeStory: "Complete Story",
     viewing: "Viewing",
@@ -150,22 +154,45 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({
                 {t.language}
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="flex gap-3">
+            <CardContent className="space-y-6">
+              <div>
+                <p className="text-sm text-gray-600 mb-3">
+                  {language === 'es' ? 'Elige el idioma para tu viaje:' : 'Choose your journey language:'}
+                </p>
+                <div className="flex gap-3">
+                  <Button
+                    variant={language === 'es' ? 'default' : 'outline'}
+                    onClick={() => onLanguageChange('es')}
+                    className="flex-1"
+                  >
+                    {t.spanish}
+                  </Button>
+                  <Button
+                    variant={language === 'en' ? 'default' : 'outline'}
+                    onClick={() => onLanguageChange('en')}
+                    className="flex-1"
+                  >
+                    {t.english}
+                  </Button>
+                </div>
+              </div>
+
+
+              <div className="pt-4 border-t border-gray-200">
                 <Button
-                  variant={language === 'es' ? 'default' : 'outline'}
-                  onClick={() => onLanguageChange('es')}
-                  className="flex-1"
+                  onClick={onStartJourney}
+                  disabled={selectedGenerations.length === 0}
+                  size="lg"
+                  className="w-full px-8 py-6 text-lg "
                 >
-                  {t.spanish}
+                  <Play className="h-5 w-5 mr-2" />
+                  {t.startJourney}
                 </Button>
-                <Button
-                  variant={language === 'en' ? 'default' : 'outline'}
-                  onClick={() => onLanguageChange('en')}
-                  className="flex-1"
-                >
-                  {t.english}
-                </Button>
+                {selectedGenerations.length === 0 && (
+                  <p className="text-red-500 text-sm mt-2 text-center">
+                    {language === 'es' ? 'Selecciona al menos una generación para continuar' : 'Select at least one generation to continue'}
+                  </p>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -202,23 +229,6 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({
             </CardContent>
           </Card>
         </div>
-
-        <div className="text-center">
-          <Button
-            onClick={onStartJourney}
-            disabled={selectedGenerations.length === 0}
-            size="lg"
-            className="px-8 py-6 text-lg"
-          >
-            <Play className="h-5 w-5 mr-2" />
-            {t.startJourney}
-          </Button>
-          {selectedGenerations.length === 0 && (
-            <p className="text-red-500 text-sm mt-2">
-              {language === 'es' ? 'Selecciona al menos una generación para continuar' : 'Select at least one generation to continue'}
-            </p>
-          )}
-        </div>
       </div>
     </div>
   );
@@ -240,6 +250,22 @@ const ProtagonistSelection: React.FC<ProtagonistSelectionProps> = ({
   language
 }) => {
   const t = translations[language];
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.2
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0 }
+  };
 
   return (
     <div className="min-h-screen">
@@ -272,31 +298,39 @@ const ProtagonistSelection: React.FC<ProtagonistSelectionProps> = ({
             </CardContent>
           </Card>
         ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <motion.div
+            className="grid md:grid-cols-2 lg:grid-cols-4 gap-6"
+            variants={containerVariants}
+            initial="hidden"
+            animate="show"
+          >
             {protagonists.map(p => (
-              <Card
+              <motion.div
                 key={p.name}
+                variants={itemVariants}
                 className="cursor-pointer transition-transform hover:scale-105 hover:shadow-lg"
                 onClick={() => onStart(p)}
               >
-                <CardContent className="p-6 text-center">
-                  {p.spriteUrl && (
-                    <img
-                      src={p.spriteUrl}
-                      alt={p.name}
-                      className="w-24 h-24 mx-auto mb-4 object-contain"
-                      onError={(e) => {
-                        e.currentTarget.style.display = 'none';
-                      }}
-                    />
-                  )}
-                  <h3 className="font-semibold capitalize">
-                    {p.name}
-                  </h3>
-                </CardContent>
-              </Card>
+                <Card>
+                  <CardContent className="p-6 text-center">
+                    {p.spriteUrl && (
+                      <img
+                        src={p.spriteUrl}
+                        alt={p.name}
+                        className="w-24 h-24 mx-auto mb-4 object-contain"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                        }}
+                      />
+                    )}
+                    <h3 className="font-semibold capitalize">
+                      {p.name}
+                    </h3>
+                  </CardContent>
+                </Card>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         )}
       </div>
     </div>
@@ -313,8 +347,9 @@ interface StoryScreenProps {
   mapNodes: MapNode[];
   onMapNodeClick: (step: number) => void;
   viewingHistoryStep?: number;
-  onOpenPokedex: () => void;
-  setStoryPokemonForCard: (element: PokeStoryElement) => void;
+  onPokemonCardClick: (element: PokeStoryElement) => void;
+  onRestart: () => void;
+  isGeneratingStep: boolean;
 }
 
 const StoryScreen: React.FC<StoryScreenProps> = ({
@@ -327,28 +362,57 @@ const StoryScreen: React.FC<StoryScreenProps> = ({
   mapNodes,
   onMapNodeClick,
   viewingHistoryStep,
-  onOpenPokedex,
-  setStoryPokemonForCard
+  onPokemonCardClick,
+  onRestart,
+  isGeneratingStep
 }) => {
   const t = translations[language];
   const isViewingHistory = viewingHistoryStep !== undefined;
 
+  const [isTypingComplete, setIsTypingComplete] = useState(false);
+
+  useEffect(() => {
+    setIsTypingComplete(false);
+  }, [storyText]);
+
+  const pokemonContainerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.08,
+        delayChildren: 0.1
+      }
+    }
+  };
+
+  const pokemonItemVariants = {
+    hidden: { opacity: 0, y: 10 },
+    show: { opacity: 1, y: 0 }
+  };
+
+  const totalStorySteps = 10;
+  const readingProgress = (step / totalStorySteps) * 100;
+
   return (
     <div className="min-h-screen p-6">
       <div className="max-w-4xl mx-auto space-y-6">
-        <div className="flex justify-end">
-            <Button onClick={onOpenPokedex}>
-                <BookOpen className="h-4 w-4 mr-2" />
-                {t.startPokedex}
-            </Button>
-        </div>
+        <Button
+          onClick={onRestart}
+          variant="outline"
+          className="mb-6"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          {t.backToSettings}
+        </Button>
+
         <Card>
           <CardHeader>
             <CardTitle className="text-lg text-center">{t.journeyMap}</CardTitle>
           </CardHeader>
           <CardContent className="p-4">
             <div className="w-full overflow-hidden">
-              <div className="flex items-center justify-between gap-2 py-4 min-w-0">
+              <div className="flex items-center justify-between gap-2 py-4 min-w-0 px-4">
                 {Array.from({ length: 10 }, (_, index) => {
                   const currentMapStep = index + 1;
                   const node = mapNodes.find(n => n.step === currentMapStep);
@@ -357,13 +421,24 @@ const StoryScreen: React.FC<StoryScreenProps> = ({
                   const isCompleted = node?.completed || false;
                   const isClickable = isCompleted;
 
+                  const prevNodeCompleted = mapNodes.some(n => n.step === currentMapStep - 1 && n.completed);
+                  const isLineActive = prevNodeCompleted && isCompleted;
+
                   return (
-                    <div key={currentMapStep} className="flex flex-col items-center space-y-1 flex-1 min-w-0">
+                    <React.Fragment key={currentMapStep}>
+                      {currentMapStep > 1 && (
+                        <div
+                          className={`
+                            flex-1 h-1 rounded-full transition-colors duration-500 ease-in-out
+                            ${isLineActive ? 'bg-green-500' : 'bg-gray-300'}
+                          `}
+                        />
+                      )}
                       <div
                         className={`
                           relative w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center border-2 transition-all
                           ${isActive
-                            ? 'bg-blue-500 border-blue-500 shadow-lg scale-110'
+                            ? 'bg-blue-500 border-blue-500 shadow-lg scale-110 animate-pulse'
                             : isCompleted
                               ? 'bg-green-500 border-green-500 hover:scale-105'
                               : 'bg-gray-200 border-gray-300'
@@ -373,69 +448,102 @@ const StoryScreen: React.FC<StoryScreenProps> = ({
                         onClick={() => isClickable && onMapNodeClick(currentMapStep)}
                       >
                         <IconComponent
-                          className={`h-3 w-3 sm:h-4 sm:w-4 md:h-6 md:w-6 ${
-                            isActive || isCompleted ? 'text-white' : 'text-gray-400'
-                          }`}
+                          className={`h-3 w-3 sm:h-4 sm:w-4 md:h-6 md:w-6 ${isActive || isCompleted ? 'text-white' : 'text-gray-400'
+                            }`}
                         />
 
                         {isActive && (
                           <div className="absolute -top-0.5 -right-0.5 w-2 h-2 sm:w-3 sm:h-3 bg-yellow-400 rounded-full border border-white"></div>
                         )}
                       </div>
-
-                      <span className={`text-xs font-medium truncate w-full text-center ${
-                        isActive ? 'text-blue-600' : isCompleted ? 'text-green-600' : 'text-gray-400'
-                      }`}>
-                        {currentMapStep}
-                      </span>
-                    </div>
+                    </React.Fragment>
                   );
                 })}
               </div>
             </div>
           </CardContent>
         </Card>
-
         {storyElements.length > 0 && (
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg text-center">{t.currentElements}</CardTitle>
+              <CardTitle className="text-xl font-bold text-center">{t.currentElements}</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex gap-4 justify-center overflow-x-auto pb-2">
-                {storyElements.slice(-3).map((element, index) => (
+              <motion.div
+                className="flex gap-6 justify-center overflow-x-auto pb-4 px-4"
+                variants={pokemonContainerVariants}
+                initial="hidden"
+                animate="show"
+              >
+                {storyElements.map((element, index) => (
                   element.spriteUrl && (
-                    <button key={`${element.name}-${index}`} className="flex-shrink-0 text-center" onClick={() => element.type === 'pokemon' && setStoryPokemonForCard(element)}>
-                      <img
-                        src={element.spriteUrl}
-                        alt={element.name}
-                        className="w-16 h-16 mx-auto mb-2 object-contain bg-white rounded-lg shadow-sm"
-                        onError={(e) => {
-                          e.currentTarget.style.display = 'none';
-                        }}
-                      />
-                      <span className="text-xs text-slate-600 capitalize">
+                    <motion.div
+                      key={`${element.name}-${index}`}
+                      variants={pokemonItemVariants}
+                      className="flex flex-col items-center transform hover:scale-105 transition-transform duration-200 cursor-pointer flex-shrink-0 p-2"
+                      onClick={() => onPokemonCardClick(element)}
+                    >
+                      <div className="relative w-32 h-32 bg-white rounded-full p-2 shadow-lg border-2 border-gray-200 hover:border-blue-400 transition-colors">
+                        <img
+                          src={element.spriteUrl}
+                          alt={element.name}
+                          className="w-full h-full object-contain"
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                          }}
+                        />
+                      </div>
+                      <span className="mt-2 text-sm font-medium text-gray-800 capitalize">
                         {element.name}
                       </span>
-                    </button>
+                      {element.types?.length > 0 && (
+                        <div className="flex gap-1 mt-1">
+                          {element.types.map((type, i) => (
+                            <span
+                              key={i}
+                              className="px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-700"
+                            >
+                              {type}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </motion.div>
                   )
                 ))}
-              </div>
+              </motion.div>
             </CardContent>
           </Card>
         )}
 
-        <Card>
+        <Card className="relative">
+          <div className="h-1 bg-blue-200 rounded-full overflow-hidden">
+            <motion.div
+              className="h-full bg-blue-500"
+              initial={{ width: 0 }}
+              animate={{ width: `${readingProgress}%` }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
+            />
+          </div>
           <CardContent className="pt-6">
             <div className="prose prose-slate max-w-none mt-4">
-              <p className="text-base leading-relaxed whitespace-pre-wrap">
-                {storyText}
-              </p>
+              {isGeneratingStep && !isViewingHistory ? (
+                <div className="flex flex-col items-center justify-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin mb-4 text-blue-500" />
+                  <p className="text-lg text-center">{t.generatingChapter}</p>
+                </div>
+              ) : (
+                <TypewriterText
+                  text={storyText}
+                  speed={30}
+                  onComplete={() => setIsTypingComplete(true)}
+                />
+              )}
             </div>
           </CardContent>
         </Card>
 
-        {!isViewingHistory && (
+        {!isViewingHistory && isTypingComplete && !isGeneratingStep && (
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">{t.whatDoYouDecide}</CardTitle>
@@ -448,6 +556,7 @@ const StoryScreen: React.FC<StoryScreenProps> = ({
                     variant="outline"
                     className="h-auto p-4 text-left justify-start whitespace-normal"
                     onClick={() => onSelectOption(index)}
+                    disabled={isGeneratingStep}
                   >
                     <span className="mr-3 text-sm text-slate-500 self-start pt-1">
                       {index + 1}.
@@ -473,7 +582,11 @@ const StoryScreen: React.FC<StoryScreenProps> = ({
   );
 };
 
-const LoadingScreen: React.FC<{ language: 'es' | 'en' }> = ({ language }) => {
+interface LoadingScreenProps {
+  language: 'es' | 'en';
+}
+
+const LoadingScreen: React.FC<LoadingScreenProps> = ({ language }) => {
   const t = translations[language];
 
   return (
@@ -481,7 +594,7 @@ const LoadingScreen: React.FC<{ language: 'es' | 'en' }> = ({ language }) => {
       <Card className="w-96">
         <CardContent className="flex flex-col items-center justify-center py-12">
           <Loader2 className="h-12 w-12 animate-spin mb-6 text-indigo-600" />
-          <p className="text-lg text-center">{t.generatingChapter}</p>
+          <p className="text-lg text-center animate-fade-in">{t.generatingChapter}</p>
         </CardContent>
       </Card>
     </div>
@@ -558,10 +671,10 @@ const EndScreen: React.FC<EndScreenProps> = ({
 };
 
 const StoryMvp: React.FC = () => {
-  const [gameState, setGameState] = useState<'settings' | 'protagonistSelection' | 'story' | 'loading' | 'end' | 'error'>('settings');
+  const [gameState, setGameState] = useState<'settings' | 'protagonistSelection' | 'story' | 'end' | 'error'>('settings');
   const [protagonists, setProtagonists] = useState<PokeStoryElement[]>([]);
   const [selectedGenerations, setSelectedGenerations] = useState<number[]>(GENERATIONS.map(g => g.id));
-  const [language, setLanguage] = useState<'es' | 'en'>('es');
+  const [language, setLanguage] = useState<'es' | 'en'>('en');
   const [storyState, setStoryState] = useState<PokeStoryState>({
     currentStep: 1,
     protagonist: null,
@@ -576,7 +689,9 @@ const StoryMvp: React.FC = () => {
   const [isPokedexModalOpen, setIsPokedexModalOpen] = useState(false);
   const [selectedPokemonForDetail, setSelectedPokemonForDetail] = useState<string | null>(null);
   const { favorites, toggleFavorite } = useFavorites();
-  const [storyPokemonForCard, setStoryPokemonForCard] = useState<PokeStoryElement | null>(null);
+  const [storyPokemonForDetail, setStoryPokemonForDetail] = useState<string | null>(null);
+  const [isGeneratingStep, setIsGeneratingStep] = useState(false);
+  const [currentStepElements, setCurrentStepElements] = useState<PokeStoryElement[]>([]);
 
   const handlePokemonSelectInModal = (pokemonName: string) => {
     setSelectedPokemonForDetail(pokemonName);
@@ -584,6 +699,21 @@ const StoryMvp: React.FC = () => {
 
   const handleBackToGridInModal = () => {
     setSelectedPokemonForDetail(null);
+  };
+
+  const handlePokemonCardClick = (element: PokeStoryElement) => {
+    if (element.type === 'pokemon') {
+      setStoryPokemonForDetail(element.name);
+    }
+  };
+
+  const handleBackFromStoryPokemonDetail = () => {
+    setStoryPokemonForDetail(null);
+  };
+
+
+  const handleOpenPokedex = () => {
+    setIsPokedexModalOpen(true);
   };
 
   const generateMapPosition = (step: number): { x: number; y: number } => {
@@ -639,12 +769,13 @@ const StoryMvp: React.FC = () => {
   };
 
   const handleStartStory = useCallback(async (protagonist: PokeStoryElement) => {
-    setGameState('loading');
+    setIsGeneratingStep(true);
+    setGameState('story');
 
     const initialState: PokeStoryState = {
       currentStep: 1,
       protagonist: protagonist,
-      accumulatedElements: [protagonist],
+      accumulatedElements: [],
       storyHistory: [],
     };
     setStoryState(initialState);
@@ -654,41 +785,45 @@ const StoryMvp: React.FC = () => {
       const result = await generateNextStoryStep(initialState, newElements, language);
 
       setCurrentStory(result);
+      const elementsForThisStep = [protagonist, ...newElements];
+      setCurrentStepElements(elementsForThisStep);
       setStoryState(prev => ({
-          ...prev,
-          accumulatedElements: [...prev.accumulatedElements, ...newElements]
+        ...prev,
+        accumulatedElements: elementsForThisStep
       }));
 
       const firstNode: MapNode = {
         step: 1,
         iconName: result.iconName || 'Home',
         position: generateMapPosition(1),
-        title: "Inicio",
+        title: translations[language].step + " 1",
         storyText: result.storyText,
         completed: true
       };
 
       setMapNodes([firstNode]);
-      setGameState('story');
     } catch (error) {
       console.error('Error starting story:', error);
       setErrorMessage(translations[language].unexpectedError);
       setGameState('error');
+    } finally {
+      setIsGeneratingStep(false);
     }
   }, [selectedGenerations, language]);
 
   const handleNextStep = useCallback(async (optionIndex: number) => {
     if (!currentStory) return;
-    setGameState('loading');
+    setIsGeneratingStep(true);
 
     const nextStep = storyState.currentStep + 1;
     const updatedHistory = [...storyState.storyHistory, currentStory.storyText];
 
     if (nextStep > 10) {
-        setMapNodes(prev => prev.map(n => ({...n, completed: true})));
-        setStoryState(prev => ({...prev, storyHistory: updatedHistory}));
-        setGameState('end');
-        return;
+      setMapNodes(prev => prev.map(n => ({ ...n, completed: true })));
+      setStoryState(prev => ({ ...prev, storyHistory: updatedHistory }));
+      setGameState('end');
+      setIsGeneratingStep(false);
+      return;
     }
 
     const updatedState: PokeStoryState = {
@@ -703,9 +838,11 @@ const StoryMvp: React.FC = () => {
       const result = await generateNextStoryStep(updatedState, newElements, language);
 
       setCurrentStory(result);
+      const elementsForThisStep = [storyState.protagonist!, ...newElements];
+      setCurrentStepElements(elementsForThisStep);
       setStoryState(prev => ({
-          ...prev,
-          accumulatedElements: [...prev.accumulatedElements, ...newElements]
+        ...prev,
+        accumulatedElements: [...prev.accumulatedElements, ...newElements]
       }));
 
       const newNode: MapNode = {
@@ -717,13 +854,14 @@ const StoryMvp: React.FC = () => {
         completed: true
       };
 
-      setMapNodes(prev => [...prev.map(n => ({...n, completed: true})), newNode]);
+      setMapNodes(prev => [...prev.map(n => ({ ...n, completed: true })), newNode]);
       setViewingHistoryStep(undefined);
-      setGameState('story');
     } catch (error) {
       console.error('Error generating next step:', error);
       setErrorMessage(translations[language].unexpectedError);
       setGameState('error');
+    } finally {
+      setIsGeneratingStep(false);
     }
   }, [storyState, currentStory, selectedGenerations, language]);
 
@@ -737,16 +875,19 @@ const StoryMvp: React.FC = () => {
 
   const handleRestart = () => {
     setStoryState({
-        currentStep: 1,
-        protagonist: null,
-        accumulatedElements: [],
-        storyHistory: [],
+      currentStep: 1,
+      protagonist: null,
+      accumulatedElements: [],
+      storyHistory: [],
     });
     setCurrentStory(null);
     setErrorMessage(null);
     setProtagonists([]);
     setMapNodes([]);
     setViewingHistoryStep(undefined);
+    setStoryPokemonForDetail(null);
+    setIsGeneratingStep(false);
+    setCurrentStepElements([]);
     setGameState('settings');
   };
 
@@ -767,9 +908,6 @@ const StoryMvp: React.FC = () => {
     const t = translations[language];
 
     switch (gameState) {
-      case 'loading':
-        return <LoadingScreen language={language} />;
-
       case 'protagonistSelection':
         return (
           <ProtagonistSelection
@@ -792,13 +930,14 @@ const StoryMvp: React.FC = () => {
             options={currentStory.options}
             onSelectOption={handleNextStep}
             step={storyState.currentStep}
-            storyElements={storyState.accumulatedElements}
+            storyElements={currentStepElements}
             language={language}
             mapNodes={mapNodes}
             onMapNodeClick={handleMapNodeClick}
             viewingHistoryStep={viewingHistoryStep}
-            onOpenPokedex={() => setIsPokedexModalOpen(true)}
-            setStoryPokemonForCard={setStoryPokemonForCard}
+            onPokemonCardClick={handlePokemonCardClick}
+            onRestart={handleRestart}
+            isGeneratingStep={isGeneratingStep}
           />
         );
 
@@ -851,28 +990,63 @@ const StoryMvp: React.FC = () => {
 
   return (
     <div className="font-sans">
-      {renderGameState()}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={gameState}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.5, ease: "easeInOut" }}
+          className="w-full"
+        >
+          {renderGameState()}
+        </motion.div>
+      </AnimatePresence>
+
+
       <Dialog open={isPokedexModalOpen} onOpenChange={setIsPokedexModalOpen}>
-        <DialogContent className="max-w-4xl h-[90vh]">
-          <DialogHeader>
-            <DialogTitle>Pokedex</DialogTitle>
-          </DialogHeader>
-          {selectedPokemonForDetail ? (
-            <PokedexDetail pokemonName={selectedPokemonForDetail} onBack={handleBackToGridInModal} />
-          ) : (
-            <PokeGrid onPokemonSelect={handlePokemonSelectInModal} />
-          )}
+        <DialogContent
+          className="max-w-4xl h-[80vh] flex flex-col
+                     data-[state=open]:animate-in data-[state=closed]:animate-out
+                     data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0
+                     data-[state=open]:zoom-in-95 data-[state=closed]:zoom-out-95
+                     duration-500 ease-in-out"
+        >
+          <DialogTitle asChild>
+            <VisuallyHidden>
+              {selectedPokemonForDetail ? 'Pokémon Details' : 'Pokedex'}
+            </VisuallyHidden>
+          </DialogTitle>
+          <div className="flex-1 overflow-hidden">
+            {selectedPokemonForDetail ? (
+              <PokedexDetail pokemonName={selectedPokemonForDetail} onBack={handleBackToGridInModal} />
+            ) : (
+              <div className="h-full">
+                <PokeGrid onPokemonSelect={handlePokemonSelectInModal} />
+              </div>
+            )}
+          </div>
         </DialogContent>
       </Dialog>
-      <Dialog open={storyPokemonForCard !== null} onOpenChange={() => setStoryPokemonForCard(null)}>
-        <DialogContent className="w-auto">
-          {storyPokemonForCard && (
-            <PokeCard
-              pokemonName={storyPokemonForCard.name}
-              onSelect={() => setStoryPokemonForCard(null)}
-              isFavorite={favorites.includes(storyPokemonForCard.id)}
-              onToggleFavorite={() => toggleFavorite(storyPokemonForCard.id)}
-            />
+
+
+      <Dialog open={storyPokemonForDetail !== null} onOpenChange={() => setStoryPokemonForDetail(null)}>
+        <DialogContent
+          className="max-w-4xl h-[90vh]
+                     data-[state=open]:animate-in data-[state=closed]:animate-out
+                     data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0
+                     data-[state=open]:zoom-in-95 data-[state=closed]:zoom-out-95
+                     duration-500 ease-in-out"
+        >
+          <VisuallyHidden>
+            <DialogHeader>
+              <DialogTitle>
+                {storyPokemonForDetail}
+              </DialogTitle>
+            </DialogHeader>
+          </VisuallyHidden>
+          {storyPokemonForDetail && (
+            <PokedexDetail pokemonName={storyPokemonForDetail} onBack={handleBackFromStoryPokemonDetail} />
           )}
         </DialogContent>
       </Dialog>

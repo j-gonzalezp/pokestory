@@ -9,6 +9,7 @@ import { FavoritesToggle } from './FavoritesToggle';
 import { PokeCard } from './PokeCard';
 import { Pagination } from './Pagination';
 import { Skeleton } from '../ui/Skeleton';
+import { ScrollArea } from '../ui/scroll-area';
 
 interface PokeGridProps {
   onPokemonSelect: (pokemonName: string) => void;
@@ -73,39 +74,41 @@ const PokeGrid: React.FC<PokeGridProps> = ({ onPokemonSelect }) => {
   );
 
   return (
-    <div className="container mx-auto p-4">
-      <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
-        <SearchBar searchTerm={searchTerm} onSearchChange={handleSearchChange} />
-        <FavoritesToggle isFiltered={showFavoritesOnly} onToggle={handleToggleFavoritesFilter} />
-      </div>
-
-      {isLoading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {Array.from({ length: itemsPerPage }).map((_, index) => (
-            <Skeleton key={index} className="h-48 w-full" />
-          ))}
+    <ScrollArea className="h-full">
+      <div className="container mx-auto p-4">
+        <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
+          <SearchBar searchTerm={searchTerm} onSearchChange={handleSearchChange} />
+          <FavoritesToggle isFiltered={showFavoritesOnly} onToggle={handleToggleFavoritesFilter} />
         </div>
-      ) : (
-        <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {currentPokemon.map((pokemon: ApiListItem) => (
-              <PokeCard
-                key={pokemon.name}
-                pokemonName={pokemon.name}
-                onSelect={onPokemonSelect}
-                isFavorite={favorites.includes(extraerIdDeUrl(pokemon.url))}
-                onToggleFavorite={() => toggleFavorite(extraerIdDeUrl(pokemon.url))}
-              />
+
+        {isLoading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4">
+            {Array.from({ length: itemsPerPage }).map((_, index) => (
+              <Skeleton key={index} className="h-48 w-full" />
             ))}
           </div>
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={handlePageChange}
-          />
-        </>
-      )}
-    </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4 mb-8">
+              {currentPokemon.map((pokemon: ApiListItem) => (
+                <PokeCard
+                  key={pokemon.name}
+                  pokemonName={pokemon.name}
+                  onSelect={onPokemonSelect}
+                  isFavorite={favorites.includes(extraerIdDeUrl(pokemon.url))}
+                  onToggleFavorite={() => toggleFavorite(extraerIdDeUrl(pokemon.url))}
+                />
+              ))}
+            </div>
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+            />
+          </>
+        )}
+      </div>
+    </ScrollArea>
   );
 };
 

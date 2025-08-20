@@ -52,7 +52,7 @@ export function PokedexDetail({ pokemonName, onBack }: PokedexDetailProps) {
   if (!details) {
     return (
       <div className="flex flex-col items-center p-4">
-        <Button onClick={onBack} className="mb-4">Volver</Button>
+        <Button onClick={onBack} className="mb-4">Back</Button>
         <p>Error loading Pokémon details.</p>
       </div>
     )
@@ -60,7 +60,9 @@ export function PokedexDetail({ pokemonName, onBack }: PokedexDetailProps) {
 
   return (
     <div className="flex flex-col items-center p-4">
-      <Button onClick={onBack} className="mb-4">Volver</Button>
+      <div className="self-start">
+        <Button onClick={onBack} className="mb-4">Back</Button>
+      </div>
       <h2 className="text-3xl font-bold mb-4">
         #{String(details.id).padStart(3, '0')} - {capitalize(details.name)}
       </h2>
@@ -79,8 +81,8 @@ export function PokedexDetail({ pokemonName, onBack }: PokedexDetailProps) {
       </div>
       <p className="text-center mb-4 max-w-prose">{details.description}</p>
       <div className="flex gap-8 text-lg">
-        <p><strong>WT:</strong> {details.weight / 10} kg</p>
-        <p><strong>HT:</strong> {details.height / 10} m</p>
+        <p><strong>Weight:</strong> {details.weight / 10} kg</p>
+        <p><strong>Height:</strong> {details.height / 10} m</p>
       </div>
     </div>
   )
