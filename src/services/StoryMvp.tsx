@@ -1,8 +1,39 @@
 "use client"
 import React, { useState, useEffect, useCallback } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/Badge';
+import { Progress } from '@/components/ui/Progress';
+import { 
+  Home, Flame, TreePine, Wind, Waves, Sparkles, MapPin, Play, RotateCcw, 
+  ArrowLeft, Loader2, Globe, Languages, Mountain, Castle, Sword, Shield,
+  Star, Sun, Moon, Cloud, Zap, Heart, Eye, Diamond, Gem, Crown,
+  Key, Lock, Footprints, Compass, Telescope, BookOpen, Scroll,
+  Feather, Wand2, Rabbit, Fish, Bird, Bug, Flower, Leaf, Snowflake
+} from 'lucide-react';
 import { PokeStoryElement, getFourDistinctPureTypePokemon, getRandomStoryElements, GENERATIONS, Generation } from './pokeapi';
 import { PokeStoryState, generateNextStoryStep, StoryStepResult, testGeminiConnection } from './gemini';
 
+const ICON_MAP = {
+  Home, Flame, TreePine, Wind, Waves, Sparkles, MapPin, Play, Mountain, Castle, 
+  Sword, Shield, Star, Sun, Moon, Cloud, Zap, Heart, Eye, Diamond, Gem, Crown,
+  Key, Lock, Footprints, Compass, Telescope, BookOpen,
+  Scroll, Feather, Wand2, Rabbit, Fish, Bird, Bug,
+  Flower, Leaf, Snowflake
+};
+
+const getIconByName = (iconName: string): React.ComponentType<any> => {
+  return ICON_MAP[iconName as keyof typeof ICON_MAP] || MapPin;
+};
+
+interface MapNode {
+  step: number;
+  iconName: string;
+  position: { x: number; y: number };
+  title: string;
+  storyText: string;
+  completed: boolean;
+}
 
 const translations = {
   es: {
@@ -27,7 +58,15 @@ const translations = {
     unexpectedError: "Ocurrió un error inesperado.",
     restart: "Reiniciar",
     failedConnection: "Error al conectar con la API de Gemini. Por favor verifica tu clave API y conexión de red.",
-    backToSettings: "Volver a Configuración"
+    backToSettings: "Volver a Configuración",
+    journeyMap: "Mapa del Viaje",
+    currentElements: "Elementos Actuales",
+    whatDoYouDecide: "¿Qué decides hacer?",
+    backToPresent: "Volver al Presente",
+    completeStory: "Historia Completa",
+    viewing: "Viendo",
+    current: "Actual",
+    nextStep: "Siguiente Paso"
   },
   en: {
     welcomeTitle: "Welcome to PokeStory",
@@ -51,11 +90,17 @@ const translations = {
     unexpectedError: "An unexpected error occurred.",
     restart: "Restart",
     failedConnection: "Failed to connect to Gemini API. Please check your API key and network connection.",
-    backToSettings: "Back to Settings"
+    backToSettings: "Back to Settings",
+    journeyMap: "Journey Map",
+    currentElements: "Current Elements",
+    whatDoYouDecide: "What do you decide to do?",
+    backToPresent: "Back to Present",
+    completeStory: "Complete Story",
+    viewing: "Viewing",
+    current: "Current",
+    nextStep: "Next Step"
   }
 };
-
-
 
 interface SettingsScreenProps {
   onStartJourney: () => void;
@@ -91,68 +136,96 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({
   };
 
   return (
-    <div style={styles.container}>
-      <h1 style={styles.title}>{t.welcomeTitle}</h1>
-      <p style={styles.description}>{t.welcomeDescription}</p>
-      
-      {}
-      <div style={styles.settingsSection}>
-        <h3 style={styles.settingsTitle}>{t.language}</h3>
-        <div style={styles.languageSelector}>
-          <button 
-            onClick={() => onLanguageChange('es')}
-            style={{...styles.settingsButton, ...(language === 'es' ? styles.activeSettingsButton : {})}}
-          >
-            {t.spanish}
-          </button>
-          <button 
-            onClick={() => onLanguageChange('en')}
-            style={{...styles.settingsButton, ...(language === 'en' ? styles.activeSettingsButton : {})}}
-          >
-            {t.english}
-          </button>
-        </div>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
+      <div className="max-w-4xl mx-auto">
+        <Card className="mb-8">
+          <CardHeader className="text-center">
+            <CardTitle className="text-4xl font-bold text-slate-800 mb-2">
+              {t.welcomeTitle}
+            </CardTitle>
+            <CardDescription className="text-lg text-slate-600">
+              {t.welcomeDescription}
+            </CardDescription>
+          </CardHeader>
+        </Card>
 
-      {}
-      <div style={styles.settingsSection}>
-        <h3 style={styles.settingsTitle}>{t.selectGenerations}</h3>
-        <div style={styles.generationControls}>
-          <button 
-            onClick={handleSelectAllGenerations}
-            style={{...styles.settingsButton, ...(selectedGenerations.length === GENERATIONS.length ? styles.activeSettingsButton : {})}}
-          >
-            {t.selectAll}
-          </button>
-        </div>
-        <div style={styles.generationGrid}>
-          {GENERATIONS.map(gen => (
-            <button
-              key={gen.id}
-              onClick={() => handleGenerationToggle(gen.id)}
-              style={{
-                ...styles.generationButton,
-                ...(selectedGenerations.includes(gen.id) ? styles.activeGenerationButton : {})
-              }}
-            >
-              {gen.displayName}
-            </button>
-          ))}
-        </div>
-      </div>
+        <div className="grid md:grid-cols-2 gap-6 mb-8">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Languages className="h-5 w-5" />
+                {t.language}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex gap-3">
+                <Button 
+                  variant={language === 'es' ? 'default' : 'outline'}
+                  onClick={() => onLanguageChange('es')}
+                  className="flex-1"
+                >
+                  {t.spanish}
+                </Button>
+                <Button 
+                  variant={language === 'en' ? 'default' : 'outline'}
+                  onClick={() => onLanguageChange('en')}
+                  className="flex-1"
+                >
+                  {t.english}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
 
-      {}
-      <div style={styles.startJourneySection}>
-        <button 
-          onClick={onStartJourney} 
-          style={styles.startJourneyButton}
-          disabled={selectedGenerations.length === 0}
-        >
-          {t.startJourney}
-        </button>
-        {selectedGenerations.length === 0 && (
-          <p style={styles.warningText}>Selecciona al menos una generación para continuar</p>
-        )}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Globe className="h-5 w-5" />
+                {t.selectGenerations}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <Button 
+                  variant={selectedGenerations.length === GENERATIONS.length ? 'default' : 'outline'}
+                  onClick={handleSelectAllGenerations}
+                  className="w-full"
+                >
+                  {t.selectAll}
+                </Button>
+                <div className="grid grid-cols-2 gap-2">
+                  {GENERATIONS.map(gen => (
+                    <Button
+                      key={gen.id}
+                      variant={selectedGenerations.includes(gen.id) ? 'default' : 'outline'}
+                      onClick={() => handleGenerationToggle(gen.id)}
+                      size="sm"
+                    >
+                      {gen.displayName}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="text-center">
+          <Button 
+            onClick={onStartJourney} 
+            disabled={selectedGenerations.length === 0}
+            size="lg"
+            className="px-8 py-6 text-lg"
+          >
+            <Play className="h-5 w-5 mr-2" />
+            {t.startJourney}
+          </Button>
+          {selectedGenerations.length === 0 && (
+            <p className="text-red-500 text-sm mt-2">
+              {language === 'es' ? 'Selecciona al menos una generación para continuar' : 'Select at least one generation to continue'}
+            </p>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -176,45 +249,63 @@ const ProtagonistSelection: React.FC<ProtagonistSelectionProps> = ({
   const t = translations[language];
   
   return (
-    <div style={styles.container}>
-      <h1 style={styles.title}>{t.chooseProtagonist}</h1>
-      <p style={styles.description}>{t.chooseProtagonistDesc}</p>
-      
-      <button onClick={onBack} style={styles.backButton}>
-        {t.backToSettings}
-      </button>
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 p-6">
+      <div className="max-w-4xl mx-auto">
+        <Button 
+          onClick={onBack} 
+          variant="outline" 
+          className="mb-6"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          {t.backToSettings}
+        </Button>
 
-      {loading || protagonists.length === 0 ? (
-        <div style={styles.loadingContainer}>
-          <div style={styles.spinner}></div>
-          <p>{t.loadingProtagonists}</p>
-        </div>
-      ) : (
-        <div style={styles.protagonistSection}>
-          <div style={styles.protagonistGrid}>
+        <Card className="mb-8">
+          <CardHeader className="text-center">
+            <CardTitle className="text-3xl font-bold text-slate-800">
+              {t.chooseProtagonist}
+            </CardTitle>
+            <CardDescription className="text-lg">
+              {t.chooseProtagonistDesc}
+            </CardDescription>
+          </CardHeader>
+        </Card>
+
+        {loading ? (
+          <Card>
+            <CardContent className="flex flex-col items-center justify-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin mb-4" />
+              <p>{t.loadingProtagonists}</p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {protagonists.map(p => (
-              <div key={p.name} style={styles.protagonistCard}>
-                {p.spriteUrl && (
-                  <img 
-                    src={p.spriteUrl} 
-                    alt={p.name}
-                    style={styles.protagonistImage}
-                    onError={(e) => {
-                      e.currentTarget.style.display = 'none';
-                    }}
-                  />
-                )}
-                <button 
-                  onClick={() => onStart(p)} 
-                  style={styles.protagonistButton}
-                >
-                  {p.name.charAt(0).toUpperCase() + p.name.slice(1)}
-                </button>
-              </div>
+              <Card 
+                key={p.name} 
+                className="cursor-pointer transition-transform hover:scale-105 hover:shadow-lg"
+                onClick={() => onStart(p)}
+              >
+                <CardContent className="p-6 text-center">
+                  {p.spriteUrl && (
+                    <img 
+                      src={p.spriteUrl} 
+                      alt={p.name}
+                      className="w-24 h-24 mx-auto mb-4 object-contain"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                      }}
+                    />
+                  )}
+                  <h3 className="font-semibold capitalize">
+                    {p.name}
+                  </h3>
+                </CardContent>
+              </Card>
             ))}
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };
@@ -226,6 +317,9 @@ interface StoryScreenProps {
   step: number;
   storyElements: PokeStoryElement[];
   language: 'es' | 'en';
+  mapNodes: MapNode[];
+  onMapNodeClick: (step: number) => void;
+  viewingHistoryStep?: number;
 }
 
 const StoryScreen: React.FC<StoryScreenProps> = ({ 
@@ -234,46 +328,142 @@ const StoryScreen: React.FC<StoryScreenProps> = ({
   onSelectOption, 
   step, 
   storyElements, 
-  language 
+  language,
+  mapNodes,
+  onMapNodeClick,
+  viewingHistoryStep
 }) => {
   const t = translations[language];
+  const isViewingHistory = viewingHistoryStep !== undefined;
   
   return (
-    <div style={styles.container}>
-      <p style={styles.stepIndicator}>{t.step} {step} / 10</p>
-      
-      {}
-      {storyElements.length > 0 && (
-        <div style={styles.elementsContainer}>
-          {storyElements.slice(-3).map((element, index) => (
-            element.spriteUrl && (
-              <div key={`${element.name}-${index}`} style={styles.elementCard}>
-                <img 
-                  src={element.spriteUrl} 
-                  alt={element.name}
-                  style={styles.elementImage}
-                  onError={(e) => {
-                    e.currentTarget.style.display = 'none';
-                  }}
-                />
-                <span style={styles.elementName}>
-                  {element.name.charAt(0).toUpperCase() + element.name.slice(1)}
-                </span>
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100 p-6">
+      <div className="max-w-4xl mx-auto space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg text-center">{t.journeyMap}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between gap-2 py-4 overflow-x-auto">
+              {Array.from({ length: 10 }, (_, index) => {
+                const currentMapStep = index + 1;
+                const node = mapNodes.find(n => n.step === currentMapStep);
+                const IconComponent = node ? getIconByName(node.iconName) : MapPin;
+                const isActive = currentMapStep === (viewingHistoryStep || step);
+                const isCompleted = node?.completed || false;
+                const isClickable = isCompleted;
+                
+                return (
+                  <div key={currentMapStep} className="flex flex-col items-center space-y-1 flex-shrink-0">
+                    <div
+                      className={`
+                        relative w-12 h-12 rounded-full flex items-center justify-center border-2 transition-all
+                        ${isActive 
+                          ? 'bg-blue-500 border-blue-500 shadow-lg scale-110' 
+                          : isCompleted 
+                            ? 'bg-green-500 border-green-500 hover:scale-105' 
+                            : 'bg-gray-200 border-gray-300'
+                        }
+                        ${isClickable ? 'cursor-pointer hover:shadow-md' : 'cursor-default'}
+                      `}
+                      onClick={() => isClickable && onMapNodeClick(currentMapStep)}
+                    >
+                      <IconComponent 
+                        className={`h-6 w-6 ${
+                          isActive || isCompleted ? 'text-white' : 'text-gray-400'
+                        }`}
+                      />
+                      
+                      {isActive && (
+                        <div className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full border border-white"></div>
+                      )}
+                    </div>
+                    
+                    <span className={`text-xs font-medium ${
+                      isActive ? 'text-blue-600' : isCompleted ? 'text-green-600' : 'text-gray-400'
+                    }`}>
+                      {currentMapStep}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+
+        {storyElements.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg text-center">{t.currentElements}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex gap-4 justify-center overflow-x-auto pb-2">
+                {storyElements.slice(-3).map((element, index) => (
+                  element.spriteUrl && (
+                    <div key={`${element.name}-${index}`} className="flex-shrink-0 text-center">
+                      <img 
+                        src={element.spriteUrl} 
+                        alt={element.name}
+                        className="w-16 h-16 mx-auto mb-2 object-contain bg-white rounded-lg shadow-sm"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                        }}
+                      />
+                      <span className="text-xs text-slate-600 capitalize">
+                        {element.name}
+                      </span>
+                    </div>
+                  )
+                ))}
               </div>
-            )
-          ))}
-        </div>
-      )}
-      
-      <div style={styles.storyContent}>
-        <p style={styles.storyText}>{storyText}</p>
-        <div style={styles.optionsGrid}>
-          {options.map((option, index) => (
-            <button key={index} onClick={() => onSelectOption(index)} style={styles.optionButton}>
-              {option}
-            </button>
-          ))}
-        </div>
+            </CardContent>
+          </Card>
+        )}
+
+        <Card>
+          <CardContent className="pt-6">
+
+            <div className="prose prose-slate max-w-none mt-4">
+              <p className="text-base leading-relaxed whitespace-pre-wrap">
+                {storyText}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {!isViewingHistory && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">{t.whatDoYouDecide}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-3">
+                {options.map((option, index) => (
+                  <Button
+                    key={index}
+                    variant="outline"
+                    className="h-auto p-4 text-left justify-start whitespace-normal"
+                    onClick={() => onSelectOption(index)}
+                  >
+                    <span className="mr-3 text-sm text-slate-500 self-start pt-1">
+                      {index + 1}.
+                    </span>
+                    <span>{option}</span>
+                  </Button>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {isViewingHistory && (
+          <Button 
+            onClick={() => onMapNodeClick(step)}
+            className="w-full"
+          >
+            {t.backToPresent}
+          </Button>
+        )}
       </div>
     </div>
   );
@@ -283,11 +473,13 @@ const LoadingScreen: React.FC<{ language: 'es' | 'en' }> = ({ language }) => {
   const t = translations[language];
   
   return (
-    <div style={styles.container}>
-      <div style={styles.loadingContainer}>
-        <div style={styles.spinner}></div>
-        <p>{t.generatingChapter}</p>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-purple-100 flex items-center justify-center">
+      <Card className="w-96">
+        <CardContent className="flex flex-col items-center justify-center py-12">
+          <Loader2 className="h-12 w-12 animate-spin mb-6 text-indigo-600" />
+          <p className="text-lg text-center">{t.generatingChapter}</p>
+        </CardContent>
+      </Card>
     </div>
   );
 };
@@ -297,42 +489,69 @@ interface EndScreenProps {
   protagonist: PokeStoryElement | null;
   onRestart: () => void;
   language: 'es' | 'en';
+  mapNodes: MapNode[];
 }
   
-const EndScreen: React.FC<EndScreenProps> = ({ storyHistory, protagonist, onRestart, language }) => {
+const EndScreen: React.FC<EndScreenProps> = ({ 
+  storyHistory, 
+  protagonist, 
+  onRestart, 
+  language,
+  mapNodes
+}) => {
   const t = translations[language];
   
   return (
-    <div style={styles.container}>
-      <h1 style={styles.title}>{t.adventureEnd}</h1>
-      <p style={styles.description}>
-        {t.storyOf} {protagonist?.name} {t.hasEnded}
-      </p>
-      {protagonist?.spriteUrl && (
-        <img 
-          src={protagonist.spriteUrl} 
-          alt={protagonist.name}
-          style={styles.endScreenImage}
-          onError={(e) => {
-            e.currentTarget.style.display = 'none';
-          }}
-        />
-      )}
-      <div style={styles.fullStoryContainer}>
-        {storyHistory.map((text, index) => (
-          <p key={index} style={styles.storyText}>
-            <strong>{t.step} {index + 1}:</strong> {text}
-          </p>
-        ))}
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-100 p-6">
+      <div className="max-w-6xl mx-auto">
+        <Card className="mb-8">
+          <CardHeader className="text-center">
+            <CardTitle className="text-4xl font-bold text-slate-800 mb-2">
+              {t.adventureEnd}
+            </CardTitle>
+            <CardDescription className="text-xl">
+              {t.storyOf} {protagonist?.name} {t.hasEnded}
+            </CardDescription>
+            {protagonist?.spriteUrl && (
+              <img 
+                src={protagonist.spriteUrl} 
+                alt={protagonist.name}
+                className="w-32 h-32 mx-auto mt-6 object-contain"
+              />
+            )}
+          </CardHeader>
+        </Card>
+
+        <div className="grid lg:grid-cols-2 gap-6 mb-8">
+          <Card className="lg:col-span-2">
+            <CardHeader>
+              <CardTitle>{t.completeStory}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-6 max-h-96 overflow-y-auto">
+                {storyHistory.map((text, index) => (
+                  <div key={index} className="border-l-4 border-indigo-200 pl-4">
+                    <Badge variant="outline" className="mb-2">
+                      {t.step} {index + 1}
+                    </Badge>
+                    <p className="text-sm leading-relaxed">{text}</p>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="text-center">
+          <Button onClick={onRestart} size="lg" className="px-8 py-6">
+            <RotateCcw className="h-5 w-5 mr-2" />
+            {t.playAgain}
+          </Button>
+        </div>
       </div>
-      <button onClick={onRestart} style={styles.restartButton}>
-        {t.playAgain}
-      </button>
     </div>
   );
 };
-
-
 
 const StoryMvp: React.FC = () => {
   const [gameState, setGameState] = useState<'settings' | 'protagonistSelection' | 'story' | 'loading' | 'end' | 'error'>('settings');
@@ -348,6 +567,24 @@ const StoryMvp: React.FC = () => {
   const [currentStory, setCurrentStory] = useState<StoryStepResult | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [protagonistLoading, setProtagonistLoading] = useState<boolean>(false);
+  const [mapNodes, setMapNodes] = useState<MapNode[]>([]);
+  const [viewingHistoryStep, setViewingHistoryStep] = useState<number | undefined>();
+
+  const generateMapPosition = (step: number): { x: number; y: number } => {
+    const totalSteps = 10;
+    const viewWidth = 1000;
+    const padding = 50;
+    const contentWidth = viewWidth - (padding * 2);
+    const stepWidth = contentWidth / (totalSteps - 1); 
+    
+    const x = padding + (step - 1) * stepWidth;
+    
+    const baseY = 75;
+    const yOffset = 20;
+    const y = baseY + ((step % 2 === 0) ? -yOffset : yOffset);
+    
+    return { x, y };
+  };
 
   const loadProtagonists = useCallback(async () => {
     setProtagonistLoading(true);
@@ -364,7 +601,6 @@ const StoryMvp: React.FC = () => {
 
   useEffect(() => {
     const initializeGame = async () => {
-      
       const isGeminiConnected = await testGeminiConnection();
       if (!isGeminiConnected) {
         setErrorMessage(translations[language].failedConnection);
@@ -376,7 +612,6 @@ const StoryMvp: React.FC = () => {
 
   const handleStartJourney = useCallback(async () => {
     if (selectedGenerations.length === 0) return;
-    
     setGameState('protagonistSelection');
     await loadProtagonists();
   }, [selectedGenerations, loadProtagonists]);
@@ -405,6 +640,17 @@ const StoryMvp: React.FC = () => {
           ...prev,
           accumulatedElements: [...prev.accumulatedElements, ...newElements]
       }));
+
+      const firstNode: MapNode = {
+        step: 1,
+        iconName: result.iconName || 'Home',
+        position: generateMapPosition(1),
+        title: "Inicio",
+        storyText: result.storyText,
+        completed: true
+      };
+      
+      setMapNodes([firstNode]);
       setGameState('story');
     } catch (error) {
       console.error('Error starting story:', error);
@@ -422,6 +668,7 @@ const StoryMvp: React.FC = () => {
     const updatedHistory = [...storyState.storyHistory, currentStory.storyText];
 
     if (nextStep > 10) {
+        setMapNodes(prev => prev.map(n => ({...n, completed: true})));
         setStoryState(prev => ({...prev, storyHistory: updatedHistory}));
         setGameState('end');
         return;
@@ -443,6 +690,18 @@ const StoryMvp: React.FC = () => {
           ...prev,
           accumulatedElements: [...prev.accumulatedElements, ...newElements]
       }));
+
+      const newNode: MapNode = {
+        step: nextStep,
+        iconName: result.iconName || 'MapPin',
+        position: generateMapPosition(nextStep),
+        title: `${translations[language].step} ${nextStep}`,
+        storyText: result.storyText,
+        completed: true
+      };
+      
+      setMapNodes(prev => [...prev.map(n => ({...n, completed: true})), newNode]);
+      setViewingHistoryStep(undefined);
       setGameState('story');
     } catch (error) {
       console.error('Error generating next step:', error);
@@ -450,6 +709,15 @@ const StoryMvp: React.FC = () => {
       setGameState('error');
     }
   }, [storyState, currentStory, selectedGenerations, language]);
+
+  const handleMapNodeClick = useCallback((step: number) => {
+    if (step === storyState.currentStep) {
+      setViewingHistoryStep(undefined);
+      return;
+    }
+
+    setViewingHistoryStep(step);
+  }, [storyState.currentStep]);
 
   const handleRestart = () => {
     setStoryState({
@@ -461,6 +729,8 @@ const StoryMvp: React.FC = () => {
     setCurrentStory(null);
     setErrorMessage(null);
     setProtagonists([]);
+    setMapNodes([]);
+    setViewingHistoryStep(undefined);
     setGameState('settings');
   };
 
@@ -470,6 +740,11 @@ const StoryMvp: React.FC = () => {
 
   const handleLanguageChange = (lang: 'es' | 'en') => {
     setLanguage(lang);
+  };
+
+  const getHistoryStoryText = (step: number): string => {
+    const node = mapNodes.find(n => n.step === step);
+    return node?.storyText || "";
   };
 
   const renderGameState = () => {
@@ -489,31 +764,52 @@ const StoryMvp: React.FC = () => {
           />
         );
       case 'story':
+        const displayStoryText = viewingHistoryStep 
+          ? getHistoryStoryText(viewingHistoryStep)
+          : currentStory?.storyText || "";
+        
         return currentStory && (
           <StoryScreen
-            storyText={currentStory.storyText}
+            storyText={displayStoryText}
             options={currentStory.options}
             onSelectOption={handleNextStep}
             step={storyState.currentStep}
             storyElements={storyState.accumulatedElements}
             language={language}
+            mapNodes={mapNodes}
+            onMapNodeClick={handleMapNodeClick}
+            viewingHistoryStep={viewingHistoryStep}
           />
         );
       case 'end':
         return (
           <EndScreen
-            storyHistory={storyState.storyHistory}
+            storyHistory={[...storyState.storyHistory, currentStory?.storyText || '']}
             protagonist={storyState.protagonist}
             onRestart={handleRestart}
             language={language}
+            mapNodes={mapNodes}
           />
         );
       case 'error':
         return (
-          <div style={styles.container}>
-            <h1 style={styles.title}>{t.error}</h1>
-            <p style={styles.description}>{errorMessage || t.unexpectedError}</p>
-            <button onClick={handleRestart} style={styles.restartButton}>{t.restart}</button>
+          <div className="min-h-screen bg-gradient-to-br from-red-50 to-pink-100 flex items-center justify-center p-6">
+            <Card className="w-full max-w-md">
+              <CardHeader className="text-center">
+                <CardTitle className="text-2xl font-bold text-red-600">
+                  {t.error}
+                </CardTitle>
+                <CardDescription className="text-red-500">
+                  {errorMessage || t.unexpectedError}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="text-center">
+                <Button onClick={handleRestart} className="w-full">
+                  <RotateCcw className="h-4 w-4 mr-2" />
+                  {t.restart}
+                </Button>
+              </CardContent>
+            </Card>
           </div>
         );
       case 'settings':
@@ -531,292 +827,10 @@ const StoryMvp: React.FC = () => {
   };
 
   return (
-    <div style={styles.appContainer}>
+    <div className="font-sans">
       {renderGameState()}
     </div>
   );
-};
-
-
-
-const styles: { [key: string]: React.CSSProperties } = {
-    appContainer: {
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
-        maxWidth: '1000px',
-        margin: '40px auto',
-        padding: '20px',
-        backgroundColor: '#f0f2f5',
-        borderRadius: '8px',
-        boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-        color: '#333'
-    },
-    container: {
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        textAlign: 'center',
-    },
-    title: {
-        fontSize: '2.5rem',
-        color: '#2c3e50',
-        marginBottom: '10px'
-    },
-    description: {
-        fontSize: '1.2rem',
-        color: '#555',
-        marginBottom: '30px'
-    },
-    
-    
-    settingsSection: {
-        marginBottom: '30px',
-        width: '100%',
-        maxWidth: '800px'
-    },
-    settingsTitle: {
-        fontSize: '1.4rem',
-        color: '#2c3e50',
-        marginBottom: '15px'
-    },
-    languageSelector: {
-        display: 'flex',
-        gap: '10px',
-        justifyContent: 'center',
-        marginBottom: '20px'
-    },
-    settingsButton: {
-        padding: '8px 16px',
-        fontSize: '1rem',
-        cursor: 'pointer',
-        backgroundColor: '#ecf0f1',
-        color: '#2c3e50',
-        border: '2px solid #bdc3c7',
-        borderRadius: '5px',
-        transition: 'all 0.3s ease'
-    },
-    activeSettingsButton: {
-        backgroundColor: '#3498db',
-        color: 'white',
-        borderColor: '#3498db'
-    },
-    
-    
-    generationControls: {
-        marginBottom: '15px'
-    },
-    generationGrid: {
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-        gap: '10px',
-        marginBottom: '20px'
-    },
-    generationButton: {
-        padding: '10px 15px',
-        fontSize: '0.9rem',
-        cursor: 'pointer',
-        backgroundColor: '#ecf0f1',
-        color: '#2c3e50',
-        border: '2px solid #bdc3c7',
-        borderRadius: '5px',
-        transition: 'all 0.3s ease'
-    },
-    activeGenerationButton: {
-        backgroundColor: '#27ae60',
-        color: 'white',
-        borderColor: '#27ae60'
-    },
-
-    
-    startJourneySection: {
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: '10px'
-    },
-    startJourneyButton: {
-        padding: '15px 30px',
-        fontSize: '1.2rem',
-        cursor: 'pointer',
-        backgroundColor: '#e74c3c',
-        color: 'white',
-        border: 'none',
-        borderRadius: '8px',
-        transition: 'all 0.3s ease',
-        boxShadow: '0 4px 8px rgba(231, 76, 60, 0.3)'
-    },
-    warningText: {
-        color: '#e74c3c',
-        fontSize: '0.9rem',
-        fontStyle: 'italic'
-    },
-
-    
-    backButton: {
-        padding: '8px 16px',
-        fontSize: '0.9rem',
-        cursor: 'pointer',
-        backgroundColor: '#95a5a6',
-        color: 'white',
-        border: 'none',
-        borderRadius: '5px',
-        marginBottom: '20px',
-        transition: 'background-color 0.3s ease'
-    },
-
-    
-    loadingContainer: {
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: '20px',
-        padding: '40px'
-    },
-    
-    
-    protagonistSection: {
-        width: '100%'
-    },
-    protagonistGrid: {
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-        gap: '20px',
-        justifyContent: 'center'
-    },
-    protagonistCard: {
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        padding: '15px',
-        backgroundColor: 'white',
-        borderRadius: '10px',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-        transition: 'transform 0.3s ease'
-    },
-    protagonistImage: {
-        width: '120px',
-        height: '120px',
-        objectFit: 'contain',
-        marginBottom: '10px'
-    },
-    protagonistButton: {
-        padding: '12px 24px',
-        fontSize: '1rem',
-        cursor: 'pointer',
-        backgroundColor: '#3498db',
-        color: 'white',
-        border: 'none',
-        borderRadius: '5px',
-        transition: 'background-color 0.3s ease',
-        width: '100%'
-    },
-    
-    
-    elementsContainer: {
-        display: 'flex',
-        gap: '15px',
-        marginBottom: '20px',
-        justifyContent: 'center',
-        flexWrap: 'wrap'
-    },
-    elementCard: {
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        padding: '10px',
-        backgroundColor: 'white',
-        borderRadius: '8px',
-        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-        minWidth: '100px'
-    },
-    elementImage: {
-        width: '60px',
-        height: '60px',
-        objectFit: 'contain',
-        marginBottom: '5px'
-    },
-    elementName: {
-        fontSize: '0.8rem',
-        color: '#555',
-        textAlign: 'center'
-    },
-    
-    
-    storyContent: {
-        width: '100%'
-    },
-    stepIndicator: {
-        alignSelf: 'flex-end',
-        color: '#95a5a6',
-        fontSize: '0.9rem',
-        marginBottom: '10px'
-    },
-    storyText: {
-        fontSize: '1.1rem',
-        lineHeight: '1.6',
-        textAlign: 'left',
-        whiteSpace: 'pre-wrap',
-        backgroundColor: '#fff',
-        padding: '20px',
-        borderRadius: '5px',
-        borderLeft: '4px solid #3498db',
-        marginBottom: '20px'
-    },
-    optionsGrid: {
-        display: 'grid',
-        gridTemplateColumns: '1fr 1fr',
-        gap: '15px',
-        width: '100%',
-    },
-    optionButton: {
-        padding: '15px',
-        fontSize: '1rem',
-        cursor: 'pointer',
-        backgroundColor: '#ecf0f1',
-        color: '#2c3e50',
-        border: '2px solid #bdc3c7',
-        borderRadius: '5px',
-        transition: 'all 0.3s ease',
-        textAlign: 'center'
-    },
-    
-    
-    spinner: {
-        border: '6px solid #f3f3f3',
-        borderTop: '6px solid #3498db',
-        borderRadius: '50%',
-        width: '50px',
-        height: '50px',
-        animation: 'spin 1s linear infinite',
-        marginBottom: '20px',
-    },
-    
-    
-    endScreenImage: {
-        width: '150px',
-        height: '150px',
-        objectFit: 'contain',
-        marginBottom: '20px'
-    },
-    fullStoryContainer: {
-        maxHeight: '400px',
-        overflowY: 'auto',
-        border: '1px solid #ddd',
-        padding: '15px',
-        borderRadius: '5px',
-        marginBottom: '20px',
-        width: '100%',
-        backgroundColor: 'white'
-    },
-    restartButton: {
-        padding: '12px 24px',
-        fontSize: '1.1rem',
-        cursor: 'pointer',
-        backgroundColor: '#2ecc71',
-        color: 'white',
-        border: 'none',
-        borderRadius: '5px',
-        transition: 'background-color 0.3s ease'
-    }
 };
 
 export default StoryMvp;

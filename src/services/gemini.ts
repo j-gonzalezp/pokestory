@@ -11,18 +11,46 @@ export interface PokeStoryState {
 export interface StoryStepResult {
   storyText: string
   options: string[]
+  iconName?: string
 }
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY
 
 if (!GEMINI_API_KEY) {
-  console.error("⚠️  GEMINI_API_KEY is not configured in environment variables")
+  console.error("GEMINI_API_KEY is not configured in environment variables")
   throw new Error("The GEMINI_API_KEY environment variable is not configured. Please set it in your .env file")
 }
 
 const ai = new GoogleGenAI({
   apiKey: GEMINI_API_KEY
 });
+
+const AVAILABLE_ICONS = [
+  'Home', 'MapPin', 'Compass', 'Path', 'Footprints', 'Navigation', 'Route', 'Signpost', 
+  'Milestone', 'Crosshairs', 'Target', 'Locate', 'GPS', 'Directions', 'Waypoints',
+  'Flame', 'Fire', 'Wind', 'Waves', 'TreePine', 'Tree', 'Forest', 'Leaf', 'Seedling', 
+  'Flower', 'Flower2', 'Cherry', 'Mountain', 'Mountains', 'Volcano', 'Cave', 'Rock', 
+  'Stone', 'Crystal', 'Gem', 'Diamond', 'Snowflake', 'CloudSnow', 'CloudRain', 'Storm',
+  'Sun', 'Moon', 'Star', 'Stars', 'Sparkles', 'Cloud', 'CloudDrizzle', 'CloudLightning', 
+  'Rainbow', 'Sunrise', 'Sunset', 'Eclipse', 'Comet', 'Orbit', 'Galaxy',
+  'Rabbit', 'Fish', 'Bird', 'Bug', 'Butterfly', 'Bee', 'Ant', 'Spider', 'Snail', 'Turtle',
+  'Cat', 'Dog', 'Horse', 'Sheep', 'Cow', 'Pig', 'MousePointer', 'Pawprint', 'Feather', 'Shell',
+  'Sword', 'Swords', 'Shield', 'Axe', 'Hammer', 'Spear', 'Bow', 'Crosshair', 'Bomb', 'Explosion',
+  'Zap', 'Lightning', 'Bolt', 'Flash', 'Spark', 'Energy', 'Power', 'Strength', 'Fight', 'Strike',
+  'Castle', 'Tower', 'Building', 'Church', 'House', 'Warehouse', 'Factory', 'Tent', 'Hut',
+  'Bridge', 'Gate', 'Door', 'DoorOpen', 'DoorClosed', 'Window',
+  'Wand2', 'MagicWand', 'Sparkle', 'Glitter', 'Potion', 'Cauldron', 'Scroll', 'Rune', 'Pentagram',
+  'Amulet', 'Orb', 'Staff', 'Crown', 'Tiara', 'Ring', 'Pendant', 'Charm', 'Blessing', 'Curse', 'Hex',
+  'Key', 'Keys', 'Lock', 'Unlock', 'Chest', 'Box', 'Package', 'Gift', 'Treasure', 'Coins',
+  'Wrench', 'Screwdriver', 'Pickaxe', 'Shovel', 'Rope', 'Chain', 'Hook', 'Anchor', 'Bell',
+  'Heart', 'HeartBroken', 'Smile', 'Frown', 'Angry', 'Surprised', 'Confused', 'Tired', 'Happy',
+  'Sad', 'Fear', 'Love', 'Hate', 'Joy', 'Peace', 'Rage', 'Wonder', 'Hope', 'Despair',
+  'BookOpen', 'Book', 'Scroll2', 'Quill', 'Ink', 'Map', 'Globe', 'Archive', 'Library', 'Study',
+  'Eye', 'Eyes', 'Vision', 'Watch', 'Clock', 'Timer', 'Hourglass', 'Calendar', 'Date', 'Schedule',
+  'Music', 'Note', 'Trumpet', 'Drum', 'Guitar', 'Piano', 'Violin', 'Flute', 'Song', 'Melody',
+  'Medicine', 'Pill', 'Syringe', 'Bandage', 'Hospital', 'Health', 'Heal', 'Cure', 'Recovery', 'Aid',
+  'Telescope', 'Microscope', 'Beaker', 'Flask', 'Atom', 'DNA', 'Magnet', 'Scale', 'Ruler', 'Calculator'
+];
 
 const NARRATIVE_FRAMEWORK = {
   es: [
@@ -77,6 +105,9 @@ Eres un maestro narrador creando una aventura inmersiva de Pokémon. Sigue estas
 - Nuevos elementos a incorporar: ${newElements.map(e => e.name).join(", ") || "Ninguno"}
 ${storyContext}
 
+**Iconos Disponibles para el Mapa:**
+${AVAILABLE_ICONS.join(', ')}
+
 **Requisitos:**
 1. Escribe un segmento de historia convincente (100-200 palabras)
 2. Incorpora TODOS los nuevos elementos de manera natural en la narrativa
@@ -85,17 +116,38 @@ ${storyContext}
 5. Mantén consistencia con eventos previos de la historia
 6. Usa descripciones vívidas y diálogo atractivo
 7. ESCRIBE TODO EL TEXTO EN ESPAÑOL
+8. **SELECCIONA UN ÍCONO** de la lista disponible que mejor represente este momento de la historia
 
 **Formato de Respuesta - DEBE ser JSON válido:**
 {
   "storyText": "Tu texto de historia aquí...",
   "options": [
     "Descripción de la primera opción",
-    "Descripción de la segunda opción",
+    "Descripción de la segunda opción", 
     "Descripción de la tercera opción",
     "Descripción de la cuarta opción"
-  ]
+  ],
+  "iconName": "NombreDelIconoElegido"
 }
+
+**Guía para Selección de Iconos:**
+- Home: Inicio del viaje, hogar, lugar seguro
+- Flame/Fire: Peligro, combate, pasión, urgencia
+- TreePine/Forest: Bosques, naturaleza, crecimiento
+- Wind: Cambio, movimiento, libertad
+- Waves: Emociones intensas, crisis, fluidez
+- Mountain: Desafíos, obstáculos, elevación
+- Castle: Poder, autoridad, fortalezas
+- Sword/Shield: Combate, defensa, conflicto
+- Star/Sparkles: Magia, esperanza, revelación
+- Sun/Moon: Tiempo, ciclos, iluminación
+- Crown/Gem: Tesoros, realeza, valor
+- Key/Lock: Secretos, misterios, acceso
+- Path/Footprints: Viaje, seguimiento, exploración
+- Compass: Dirección, navegación, búsqueda
+- Crystal/Wand2: Magia, poder místico
+- Cave: Misterio, profundidad, refugio
+- Volcano: Peligro extremo, transformación
 
 Escribe el segmento de historia ahora:
     `,
@@ -114,6 +166,9 @@ You are a master storyteller creating an immersive Pokémon adventure story. Fol
 - New elements to incorporate: ${newElements.map(e => e.name).join(", ") || "None"}
 ${storyContext}
 
+**Available Icons for the Map:**
+${AVAILABLE_ICONS.join(', ')}
+
 **Requirements:**
 1. Write a compelling story segment (100-200 words)
 2. Incorporate ALL new elements naturally into the narrative
@@ -122,6 +177,7 @@ ${storyContext}
 5. Maintain consistency with previous story events
 6. Use vivid descriptions and engaging dialogue
 7. WRITE ALL TEXT IN ENGLISH
+8. **SELECT AN ICON** from the available list that best represents this story moment
 
 **Response Format - MUST be valid JSON:**
 {
@@ -129,10 +185,30 @@ ${storyContext}
   "options": [
     "First choice description",
     "Second choice description",
-    "Third choice description",
+    "Third choice description", 
     "Fourth choice description"
-  ]
+  ],
+  "iconName": "ChosenIconName"
 }
+
+**Icon Selection Guide:**
+- Home: Journey start, home, safe place
+- Flame/Fire: Danger, combat, passion, urgency
+- TreePine/Forest: Forests, nature, growth
+- Wind: Change, movement, freedom
+- Waves: Intense emotions, crisis, fluidity
+- Mountain: Challenges, obstacles, elevation
+- Castle: Power, authority, fortresses
+- Sword/Shield: Combat, defense, conflict
+- Star/Sparkles: Magic, hope, revelation
+- Sun/Moon: Time, cycles, illumination
+- Crown/Gem: Treasures, royalty, value
+- Key/Lock: Secrets, mysteries, access
+- Path/Footprints: Journey, tracking, exploration
+- Compass: Direction, navigation, search
+- Crystal/Wand2: Magic, mystical power
+- Cave: Mystery, depth, shelter
+- Volcano: Extreme danger, transformation
 
 Write the story segment now:
     `
@@ -148,7 +224,8 @@ const validateStoryResponse = (response: any): response is StoryStepResult => {
     typeof response.storyText === 'string' &&
     Array.isArray(response.options) &&
     response.options.length === 4 &&
-    response.options.every((option: any) => typeof option === 'string')
+    response.options.every((option: any) => typeof option === 'string') &&
+    (typeof response.iconName === 'string' || response.iconName === undefined)
   )
 }
 
@@ -161,6 +238,14 @@ const cleanJsonResponse = (text: string): string => {
   }
 
   return text.trim()
+}
+
+const validateIconName = (iconName: string | undefined): string => {
+  if (!iconName || !AVAILABLE_ICONS.includes(iconName)) {
+    console.warn(`Invalid or missing icon name: ${iconName}. Using default MapPin.`);
+    return 'MapPin';
+  }
+  return iconName;
 }
 
 export const generateNextStoryStep = async (
@@ -178,7 +263,7 @@ export const generateNextStoryStep = async (
       throw new Error(`No narrative guide found for step ${currentState.currentStep}`)
     }
 
-    console.log(`🎮 Generating story for step ${currentState.currentStep}: ${narrativeGuide.title}`)
+    console.log(`Generating story for step ${currentState.currentStep}: ${narrativeGuide.title}`)
 
     const prompt = buildPrompt(currentState, newElements, narrativeGuide, language)
 
@@ -199,11 +284,11 @@ export const generateNextStoryStep = async (
     const responseText = response.text;
 
     if (!responseText) {
-      console.error("❌ Gemini returned an empty text response. Full response object:", response);
+      console.error("Gemini returned an empty text response. Full response object:", response);
       throw new Error("Empty response from Gemini. Check your API configuration or prompt.");
     }
 
-    console.log("📝 Raw Gemini response:", responseText.substring(0, 200) + "...")
+    console.log("Raw Gemini response:", responseText.substring(0, 200) + "...")
 
     const cleanedResponse = cleanJsonResponse(responseText)
 
@@ -211,22 +296,24 @@ export const generateNextStoryStep = async (
     try {
       parsedResponse = JSON.parse(cleanedResponse)
     } catch (parseError) {
-      console.error("❌ Error parsing JSON:", parseError)
+      console.error("Error parsing JSON:", parseError)
       console.error("Cleaned response:", cleanedResponse)
       throw new Error(`Error parsing JSON response: ${parseError}`)
     }
 
     if (!validateStoryResponse(parsedResponse)) {
-      console.error("❌ Invalid response:", parsedResponse)
+      console.error("Invalid response:", parsedResponse)
       throw new Error("Gemini's response does not have the expected format")
     }
 
-    console.log("✅ Story successfully generated")
+    parsedResponse.iconName = validateIconName(parsedResponse.iconName)
+
+    console.log("Story successfully generated with icon:", parsedResponse.iconName)
 
     return parsedResponse as StoryStepResult
 
   } catch (error) {
-    console.error("❌ Error in generateNextStoryStep:", error)
+    console.error("Error in generateNextStoryStep:", error)
 
     const fallbackMessages = {
       es: {
@@ -236,7 +323,8 @@ export const generateNextStoryStep = async (
           "Explorar los alrededores",
           "Revisar tu equipo",
           "Tomar un descanso"
-        ]
+        ],
+        iconName: "MapPin"
       },
       en: {
         storyText: `Sorry, there was a problem generating the story at this moment. ${error instanceof Error ? error.message : 'Unknown error'}`,
@@ -245,7 +333,8 @@ export const generateNextStoryStep = async (
           "Explore the surroundings",
           "Check your equipment",
           "Take a break"
-        ]
+        ],
+        iconName: "MapPin"
       }
     }
 
@@ -271,7 +360,7 @@ export const testGeminiConnection = async (): Promise<boolean> => {
 
     return responseText?.includes('OK') || false;
   } catch (error) {
-    console.error("❌ Gemini connection error:", error);
+    console.error("Gemini connection error:", error);
     return false;
   }
 }
