@@ -20,6 +20,7 @@ export interface PokeStoryElement {
   type: 'pokemon' | 'item' | 'location' | 'ability'
   spriteUrl?: string
   id: number
+  types?: string[] // Added for elemental types of Pokémon
 }
 
 export interface Generation {
@@ -227,7 +228,8 @@ export const getFourDistinctPureTypePokemon = async (selectedGenerations: number
               internalUrl: `/pokemon/${pokemonData.name}`,
               type: 'pokemon',
               spriteUrl: pokemonData.sprites.other?.['official-artwork']?.front_default || pokemonData.sprites.front_default,
-              id: pokemonData.id
+              id: pokemonData.id,
+              types: pokemonData.types.map((t: any) => t.type.name)
             })
             break
           }
@@ -272,7 +274,8 @@ export const getRandomStoryElements = async (count: number = 3, selectedGenerati
           internalUrl: `/pokemon/${data.name}`,
           type: 'pokemon',
           spriteUrl: data.sprites.other?.['official-artwork']?.front_default || data.sprites.front_default,
-          id: data.id
+          id: data.id,
+          types: data.types.map((t: any) => t.type.name)
         })
       } else {
         const randomId = getRandomInt(totalLocations)

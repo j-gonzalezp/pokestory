@@ -1,9 +1,10 @@
 "use client"
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
-import { ArrowLeft, BookOpen, Trash2, Eye } from 'lucide-react';
+import { ArrowLeft, BookOpen, Trash2, Eye, LucideProps } from 'lucide-react';
 import { PokeStoryElement } from '../../services/pokeapi';
 import { APP_ICON_MAP } from '@/lib/app-icons';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -25,7 +26,7 @@ interface SavedStory {
     timestamp: number;
 }
 
-const getIconByName = (iconName: string): React.ComponentType<any> => {
+const getIconByName = (iconName: string): React.ComponentType<LucideProps> => {
     return APP_ICON_MAP[iconName as keyof typeof APP_ICON_MAP] || APP_ICON_MAP.MapPin;
 };
 
@@ -99,7 +100,9 @@ const StoryDetailDisplay: React.FC<StoryDetailDisplayProps> = ({ story, onBack, 
                     <CardDescription className="text-xl">
                         {t.protagonist}: {story.protagonist.name}
                     </CardDescription>
-                    <img src={story.protagonist.spriteUrl} alt={story.protagonist.name} className="w-24 h-24 mx-auto mt-4" />
+                    {story.protagonist.spriteUrl && (
+                        <Image src={story.protagonist.spriteUrl} alt={story.protagonist.name} width={96} height={96} className="mx-auto mt-4" />
+                    )}
                 </CardHeader>
             </Card>
 
@@ -126,7 +129,7 @@ const StoryDetailDisplay: React.FC<StoryDetailDisplayProps> = ({ story, onBack, 
                         {story.allElements.map((element, index) => (
                             element.spriteUrl && (
                                 <motion.div key={`${element.name}-${index}`} variants={pokemonItemVariants} className="flex flex-col items-center flex-shrink-0">
-                                    <div className="w-24 h-24 bg-slate-50 rounded-full p-2 shadow-inner"><img src={element.spriteUrl} alt={element.name} className="w-full h-full object-contain" /></div>
+                                    <div className="w-24 h-24 bg-slate-50 rounded-full p-2 shadow-inner"><Image src={element.spriteUrl!} alt={element.name} width={96} height={96} className="w-full h-full object-contain" /></div>
                                     <span className="mt-2 text-sm font-medium capitalize">{element.name}</span>
                                 </motion.div>
                             )))}
@@ -152,7 +155,7 @@ const StoryDetailDisplay: React.FC<StoryDetailDisplayProps> = ({ story, onBack, 
 const SavedStoriesViewer: React.FC = () => {
     const [stories, setStories] = useState<SavedStory[]>([]);
     const [selectedStory, setSelectedStory] = useState<SavedStory | null>(null);
-    const [language, setLanguage] = useState<'es' | 'en'>('en');
+    const [language] = useState<'es' | 'en'>('en');
     const t = translations[language];
 
     useEffect(() => {
@@ -209,7 +212,9 @@ const SavedStoriesViewer: React.FC = () => {
                             <Card key={story.id} className="flex flex-col">
                                 <CardHeader>
                                     <div className="flex items-start gap-4">
-                                        <img src={story.protagonist.spriteUrl} alt={story.protagonist.name} className="w-16 h-16 bg-slate-100 rounded-full p-1" />
+                                        {story.protagonist.spriteUrl && (
+                                            <Image src={story.protagonist.spriteUrl} alt={story.protagonist.name} width={64} height={64} className="bg-slate-100 rounded-full p-1" />
+                                        )}
                                         <div>
                                             <CardTitle className="text-lg leading-tight">{story.title}</CardTitle>
                                             <CardDescription className="capitalize">{t.storyOf} {story.protagonist.name}</CardDescription>

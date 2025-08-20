@@ -516,9 +516,9 @@ const StoryScreen: React.FC<StoryScreenProps> = ({
                       <span className="mt-2 text-sm font-medium text-gray-800 capitalize">
                         {element.name}
                       </span>
-                      {element.type?.length > 0 && (
+                      {element.types && element.types.length > 0 ? (
                         <div className="flex gap-1 mt-1">
-                          {element.type.map((type, i) => (
+                          {element.types.map((type, i) => (
                             <span
                               key={i}
                               className="px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-700"
@@ -527,7 +527,16 @@ const StoryScreen: React.FC<StoryScreenProps> = ({
                             </span>
                           ))}
                         </div>
-                      )}
+                      ) : (element.type && (
+                        <div className="flex gap-1 mt-1">
+                          <span
+                            key={element.name}
+                            className="px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-700"
+                          >
+                            {element.type}
+                          </span>
+                        </div>
+                      ))}
                     </motion.div>
                   )
                 ))}
