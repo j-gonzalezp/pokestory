@@ -20,7 +20,51 @@ export interface PokeStoryElement {
   type: 'pokemon' | 'item' | 'location' | 'ability'
   spriteUrl?: string
   id: number
-  types?: string[] // Added for elemental types of Pokémon
+  types?: string[]
+}
+
+interface FlavorTextEntry {
+  flavor_text: string
+  language: {
+    name: string
+    url: string
+  }
+}
+
+interface PokemonType {
+  slot: number
+  type: {
+    name: string
+    url: string
+  }
+}
+
+interface PokemonSprite {
+  front_default: string
+  other?: {
+    'official-artwork'?: {
+      front_default: string
+    }
+  }
+}
+
+interface PokemonCries {
+  latest: string
+  legacy: string
+}
+
+interface PokemonData {
+  id: number
+  name: string
+  types: PokemonType[]
+  height: number
+  weight: number
+  sprites: PokemonSprite
+  cries: PokemonCries
+}
+
+interface SpeciesData {
+  flavor_text_entries: FlavorTextEntry[]
 }
 
 export interface Generation {
@@ -85,14 +129,14 @@ export const getPokemonDetails = async (idOrName: string | number, language: str
       throw new Error(`Pokémon with id/name '${idOrName}' not found.`)
     }
 
-    const pokemonData = await pokemonRes.json()
-    const speciesData = await speciesRes.json()
+    const pokemonData: PokemonData = await pokemonRes.json()
+    const speciesData: SpeciesData = await speciesRes.json()
 
     const languageCode = language === 'es' ? 'es' : 'en'
     const descriptionEntry = speciesData.flavor_text_entries.find(
-      (entry: any) => entry.language.name === languageCode
+      (entry: FlavorTextEntry) => entry.language.name === languageCode
     ) || speciesData.flavor_text_entries.find(
-      (entry: any) => entry.language.name === 'en'
+      (entry: FlavorTextEntry) => entry.language.name === 'en'
     )
     
     const description = descriptionEntry
@@ -102,7 +146,7 @@ export const getPokemonDetails = async (idOrName: string | number, language: str
     return {
       id: pokemonData.id,
       name: pokemonData.name,
-      types: pokemonData.types.map((t: any) => t.type.name),
+      types: pokemonData.types.map((t: PokemonType) => t.type.name),
       height: pokemonData.height,
       weight: pokemonData.weight,
       spriteUrl: pokemonData.sprites.other?.['official-artwork']?.front_default || pokemonData.sprites.front_default,
@@ -125,7 +169,7 @@ export const getPokemonListByRegions = async (regionNames: string[]): Promise<Ap
 
     const pokedexUrls = regionsData
       .filter(Boolean)
-      .flatMap(region => region.pokedexes.map((pokedex: ApiListItem) => pokedex.url))
+      .flatMap(region => region.pokedexes.map((pokedex: { url: string }) => pokedex.url))
     
     const pokedexPromises = pokedexUrls.map(url => fetch(url))
     const pokedexResponses = await Promise.all(pokedexPromises)
@@ -134,7 +178,7 @@ export const getPokemonListByRegions = async (regionNames: string[]): Promise<Ap
 
     const pokemonMap = new Map<string, ApiListItem>()
     pokedexesData.filter(Boolean).forEach(pokedex => {
-      pokedex.pokemon_entries.forEach((entry: any) => {
+      pokedex.pokemon_entries.forEach((entry: { pokemon_species: ApiListItem }) => {
         const species = entry.pokemon_species
         if (!pokemonMap.has(species.name)) {
           const pokemonUrl = species.url.replace('/pokemon-species/', '/pokemon/')
@@ -204,7 +248,7 @@ export const getFourDistinctPureTypePokemon = async (selectedGenerations: number
       const typeData = await typeResponse.json()
       usedTypeIds.add(randomTypeId)
 
-      const filteredPokemon = typeData.pokemon.filter((pokemonEntry: any) => {
+      const filteredPokemon = typeData.pokemon.filter((pokemonEntry: { pokemon: ApiListItem }) => {
         const urlParts = pokemonEntry.pokemon.url.split('/')
         const pokemonId = parseInt(urlParts[urlParts.length - 2])
         return isPokemonInAllowedGenerations(pokemonId)
@@ -229,7 +273,7 @@ export const getFourDistinctPureTypePokemon = async (selectedGenerations: number
               type: 'pokemon',
               spriteUrl: pokemonData.sprites.other?.['official-artwork']?.front_default || pokemonData.sprites.front_default,
               id: pokemonData.id,
-              types: pokemonData.types.map((t: any) => t.type.name)
+              types: pokemonData.types.map((t: PokemonType) => t.type.name)
             })
             break
           }
@@ -245,6 +289,7 @@ export const getFourDistinctPureTypePokemon = async (selectedGenerations: number
   
   return pureTypePokemons
 }
+
 
 export const getRandomStoryElements = async (count: number = 3, selectedGenerations: number[] = []): Promise<PokeStoryElement[]> => {
   const elements: PokeStoryElement[] = []
@@ -275,19 +320,19 @@ export const getRandomStoryElements = async (count: number = 3, selectedGenerati
           type: 'pokemon',
           spriteUrl: data.sprites.other?.['official-artwork']?.front_default || data.sprites.front_default,
           id: data.id,
-          types: data.types.map((t: any) => t.type.name)
+          types: data.types.map((t: PokemonType) => t.type.name)
         })
       } else {
         const randomId = getRandomInt(totalLocations)
         const res = await fetch(`${POKEAPI_BASE_URL}/location/${randomId}`)
         if (!res.ok) throw new Error(`Location ${randomId} not found`)
         
-        const data = await res.json()
+        const data: ApiListItem & { id: number } = await res.json()
         elements.push({
           name: data.name,
           internalUrl: `/locations/${data.name}`,
           type: 'location',
-          id: -randomId
+          id: -data.id
         })
       }
     } catch (error) {

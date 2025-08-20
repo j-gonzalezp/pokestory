@@ -4,8 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, Loader2, Play, RotateCcw, BookOpen, Save } from 'lucide-react';
-import { PokeStoryElement, getFourDistinctPureTypePokemon, getRandomStoryElements, GENERATIONS, Generation } from '../../services/pokeapi';
+import { ArrowLeft, Loader2, Play, RotateCcw, Save, LucideIcon } from 'lucide-react';
+import { PokeStoryElement, getFourDistinctPureTypePokemon, getRandomStoryElements, GENERATIONS } from '../../services/pokeapi';
 import { PokeStoryState, generateNextStoryStep, StoryStepResult, testGeminiConnection } from '../../services/gemini';
 import { APP_ICON_MAP } from '@/lib/app-icons';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -13,6 +13,7 @@ import PokeGrid from '../pokedex/PokeGrid';
 import { PokedexDetail } from '../pokedex/PokedexDetail';
 import { useFavorites } from '@/hooks/useFavorites';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
+import Image from 'next/image';
 
 import { motion, AnimatePresence } from 'framer-motion';
 import TypewriterText from '@/components/animations/TypewriterText';
@@ -28,18 +29,18 @@ interface MapNode {
 }
 
 interface SavedStory {
-    id: string;
-    title: string;
-    protagonist: PokeStoryElement;
-    storyHistory: string[];
-    mapNodes: MapNode[];
-    allElements: PokeStoryElement[];
-    timestamp: number;
+  id: string;
+  title: string;
+  protagonist: PokeStoryElement;
+  storyHistory: string[];
+  mapNodes: MapNode[];
+  allElements: PokeStoryElement[];
+  timestamp: number;
 }
 
 
-const getIconByName = (iconName: string): React.ComponentType<any> => {
-  return APP_ICON_MAP[iconName as keyof typeof APP_ICON_MAP] || APP_ICON_MAP.MapPin;
+const getIconByName = (iconName: string): LucideIcon => {
+  return APP_ICON_MAP[iconName as keyof typeof APP_ICON_MAP] as LucideIcon || APP_ICON_MAP.MapPin as LucideIcon;
 };
 
 const translations = {
@@ -165,6 +166,37 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({
         </Card>
 
         <div className="grid md:grid-cols-2 gap-6 mb-8">
+                <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                {APP_ICON_MAP.Globe && <APP_ICON_MAP.Globe className="h-5 w-5" />}
+                {t.selectGenerations}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <Button
+                  variant={selectedGenerations.length === GENERATIONS.length ? 'default' : 'outline'}
+                  onClick={handleSelectAllGenerations}
+                  className="w-full"
+                >
+                  {t.selectAll}
+                </Button>
+                <div className="grid grid-cols-2 gap-2">
+                  {GENERATIONS.map(gen => (
+                    <Button
+                      key={gen.id}
+                      variant={selectedGenerations.includes(gen.id) ? 'default' : 'outline'}
+                      onClick={() => handleGenerationToggle(gen.id)}
+                      size="sm"
+                    >
+                      {gen.displayName}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -215,37 +247,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                {APP_ICON_MAP.Globe && <APP_ICON_MAP.Globe className="h-5 w-5" />}
-                {t.selectGenerations}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <Button
-                  variant={selectedGenerations.length === GENERATIONS.length ? 'default' : 'outline'}
-                  onClick={handleSelectAllGenerations}
-                  className="w-full"
-                >
-                  {t.selectAll}
-                </Button>
-                <div className="grid grid-cols-2 gap-2">
-                  {GENERATIONS.map(gen => (
-                    <Button
-                      key={gen.id}
-                      variant={selectedGenerations.includes(gen.id) ? 'default' : 'outline'}
-                      onClick={() => handleGenerationToggle(gen.id)}
-                      size="sm"
-                    >
-                      {gen.displayName}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+    
         </div>
       </div>
     </div>
@@ -332,13 +334,13 @@ const ProtagonistSelection: React.FC<ProtagonistSelectionProps> = ({
                 <Card>
                   <CardContent className="p-6 text-center">
                     {p.spriteUrl && (
-                      <img
+                      <Image
                         src={p.spriteUrl}
                         alt={p.name}
-                        className="w-24 h-24 mx-auto mb-4 object-contain"
-                        onError={(e) => {
-                          e.currentTarget.style.display = 'none';
-                        }}
+                        width={96}
+                        height={96}
+                        className="mx-auto mb-4"
+                        style={{ objectFit: 'contain' }}
                       />
                     )}
                     <h3 className="font-semibold capitalize">
@@ -504,13 +506,12 @@ const StoryScreen: React.FC<StoryScreenProps> = ({
                       onClick={() => onPokemonCardClick(element)}
                     >
                       <div className="relative w-32 h-32 bg-white rounded-full p-2 shadow-lg border-2 border-gray-200 hover:border-blue-400 transition-colors">
-                        <img
+                        <Image
                           src={element.spriteUrl}
                           alt={element.name}
-                          className="w-full h-full object-contain"
-                          onError={(e) => {
-                            e.currentTarget.style.display = 'none';
-                          }}
+                          fill
+                          style={{ objectFit: 'contain' }}
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                         />
                       </div>
                       <span className="mt-2 text-sm font-medium text-gray-800 capitalize">
@@ -611,25 +612,6 @@ const StoryScreen: React.FC<StoryScreenProps> = ({
   );
 };
 
-interface LoadingScreenProps {
-  language: 'es' | 'en';
-}
-
-const LoadingScreen: React.FC<LoadingScreenProps> = ({ language }) => {
-  const t = translations[language];
-
-  return (
-    <div className="min-h-screen flex items-center justify-center">
-      <Card className="w-96">
-        <CardContent className="flex flex-col items-center justify-center py-12">
-          <Loader2 className="h-12 w-12 animate-spin mb-6 text-indigo-600" />
-          <p className="text-lg text-center animate-fade-in">{t.generatingChapter}</p>
-        </CardContent>
-      </Card>
-    </div>
-  );
-};
-
 interface EndScreenProps {
   storyHistory: string[];
   protagonist: PokeStoryElement | null;
@@ -644,7 +626,6 @@ const EndScreen: React.FC<EndScreenProps> = ({
   protagonist,
   onRestart,
   language,
-  mapNodes,
   onSaveStory,
 }) => {
   const t = translations[language];
@@ -669,10 +650,13 @@ const EndScreen: React.FC<EndScreenProps> = ({
               {t.storyOf} {protagonist?.name} {t.hasEnded}
             </CardDescription>
             {protagonist?.spriteUrl && (
-              <img
+              <Image
                 src={protagonist.spriteUrl}
                 alt={protagonist.name}
-                className="w-32 h-32 mx-auto mt-6 object-contain"
+                width={128}
+                height={128}
+                className="mx-auto mt-6"
+                style={{ objectFit: 'contain' }}
               />
             )}
           </CardHeader>
@@ -700,14 +684,14 @@ const EndScreen: React.FC<EndScreenProps> = ({
 
         <Card className="mb-8">
           <CardContent className="p-6 space-y-4">
-             <Input
-                type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder={t.storyTitlePlaceholder}
-                className="text-lg"
-                disabled={isSaved}
-              />
+            <Input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder={t.storyTitlePlaceholder}
+              className="text-lg"
+              disabled={isSaved}
+            />
             <div className="flex flex-col sm:flex-row gap-4">
               <Button onClick={handleSaveClick} size="lg" className="flex-1" disabled={isSaved}>
                 <Save className="h-5 w-5 mr-2" />
@@ -728,7 +712,7 @@ const EndScreen: React.FC<EndScreenProps> = ({
 const StoryMvp: React.FC = () => {
   const [gameState, setGameState] = useState<'settings' | 'protagonistSelection' | 'story' | 'end' | 'error'>('settings');
   const [protagonists, setProtagonists] = useState<PokeStoryElement[]>([]);
-  const [selectedGenerations, setSelectedGenerations] = useState<number[]>([]);
+  const [selectedGenerations, setSelectedGenerations] = useState<number[]>(GENERATIONS.map(g => g.id));
   const [language, setLanguage] = useState<'es' | 'en'>('en');
   const [storyState, setStoryState] = useState<PokeStoryState>({
     currentStep: 1,
@@ -743,11 +727,11 @@ const StoryMvp: React.FC = () => {
   const [viewingHistoryStep, setViewingHistoryStep] = useState<number | undefined>();
   const [isPokedexModalOpen, setIsPokedexModalOpen] = useState(false);
   const [selectedPokemonForDetail, setSelectedPokemonForDetail] = useState<string | null>(null);
-  const { favorites, toggleFavorite } = useFavorites();
+  const { } = useFavorites();
   const [storyPokemonForDetail, setStoryPokemonForDetail] = useState<string | null>(null);
   const [isGeneratingStep, setIsGeneratingStep] = useState(false);
   const [currentStepElements, setCurrentStepElements] = useState<PokeStoryElement[]>([]);
-  
+
   const t = translations[language];
 
   const handlePokemonSelectInModal = (pokemonName: string) => {
@@ -766,11 +750,6 @@ const StoryMvp: React.FC = () => {
 
   const handleBackFromStoryPokemonDetail = () => {
     setStoryPokemonForDetail(null);
-  };
-
-
-  const handleOpenPokedex = () => {
-    setIsPokedexModalOpen(true);
   };
 
   const generateMapPosition = (step: number): { x: number; y: number } => {
@@ -868,7 +847,7 @@ const StoryMvp: React.FC = () => {
     }
   }, [selectedGenerations, language]);
 
-  const handleNextStep = useCallback(async (optionIndex: number) => {
+  const handleNextStep = useCallback(async () => {
     if (!currentStory) return;
     setIsGeneratingStep(true);
 
@@ -933,14 +912,14 @@ const StoryMvp: React.FC = () => {
   const handleSaveStory = (title: string) => {
     if (!storyState.protagonist) return;
 
-    const finalTitle = title.trim() === '' 
-      ? `${t.storyOf} ${storyState.protagonist.name}` 
+    const finalTitle = title.trim() === ''
+      ? `${t.storyOf} ${storyState.protagonist.name}`
       : title;
-      
+
     const fullStoryHistory = [...storyState.storyHistory, currentStory?.storyText || ''];
 
     const newStory: SavedStory = {
-      id: new Date().toISOString(), 
+      id: new Date().toISOString(),
       title: finalTitle,
       protagonist: storyState.protagonist,
       storyHistory: fullStoryHistory,

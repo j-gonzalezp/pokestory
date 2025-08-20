@@ -1,5 +1,3 @@
-// src/lib/app-icons.ts
-
 import {
   Home, Flame, TreePine, Wind, Waves, Sparkles, MapPin, Play, RotateCcw,
   ArrowLeft, Loader2, Globe, Languages, Mountain, Castle, Sword, Shield,
@@ -21,7 +19,7 @@ import {
   Microscope, Beaker, Atom, Magnet, Scale, Ruler, Calculator,
 } from 'lucide-react';
 
-export const APP_ICON_MAP: { [key: string]: React.ComponentType<any> } = {
+export const APP_ICON_MAP: { [key: string]: React.ComponentType<React.SVGProps<SVGSVGElement>> } = {
   Home, Flame, TreePine, Wind, Waves, Sparkles, MapPin, Play, RotateCcw,
   ArrowLeft, Loader2, Globe, Languages, Mountain, Castle, Sword, Shield,
   Star, Sun, Moon, Cloud, Zap, Heart, Eye, Diamond, Gem, Crown,

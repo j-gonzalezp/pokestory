@@ -1,7 +1,7 @@
-// services/gemini.ts
+
 import { PokeStoryElement } from "./pokeapi"
 import { GoogleGenAI } from "@google/genai"
-import { STORY_ICON_NAMES } from '@/lib/app-icons'; // Import the shared icon list
+import { STORY_ICON_NAMES } from '@/lib/app-icons'; 
 
 export interface PokeStoryState {
   currentStep: number
@@ -27,7 +27,7 @@ const ai = new GoogleGenAI({
   apiKey: GEMINI_API_KEY
 });
 
-// Use the shared STORY_ICON_NAMES from app-icons.ts
+
 const AVAILABLE_ICONS = STORY_ICON_NAMES;
 
 const NARRATIVE_FRAMEWORK = {
@@ -197,16 +197,17 @@ Write the story segment now:
   return prompts[language].trim()
 }
 
-const validateStoryResponse = (response: any): response is StoryStepResult => {
+const validateStoryResponse = (response: unknown): response is StoryStepResult => {
+  const res = response as Record<string, unknown>;
   return (
-    response &&
     typeof response === 'object' &&
-    typeof response.storyText === 'string' &&
-    Array.isArray(response.options) &&
-    response.options.length === 4 &&
-    response.options.every((option: any) => typeof option === 'string') &&
-    (typeof response.iconName === 'string' || response.iconName === undefined)
-  )
+    response !== null &&
+    typeof res.storyText === 'string' &&
+    Array.isArray(res.options) &&
+    res.options.length === 4 &&
+    res.options.every((option: unknown) => typeof option === 'string') &&
+    (typeof res.iconName === 'string' || res.iconName === undefined)
+  );
 }
 
 const cleanJsonResponse = (text: string): string => {
@@ -272,7 +273,7 @@ export const generateNextStoryStep = async (
 
     const cleanedResponse = cleanJsonResponse(responseText)
 
-    let parsedResponse: any
+    let parsedResponse: unknown
     try {
       parsedResponse = JSON.parse(cleanedResponse)
     } catch (parseError) {

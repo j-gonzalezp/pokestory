@@ -21,6 +21,11 @@ export default function Navbar() {
               <Link href="/">Home</Link>
             </Button>
           </li>
+           <li>
+            <Button variant="ghost" className="text-foreground hover:bg-accent/20 hover:text-accent-foreground" asChild>
+              <Link href="/pokedex">Pokédex</Link>
+            </Button>
+          </li>
           <li>
             <Button variant="ghost" className="text-foreground hover:bg-accent/20 hover:text-accent-foreground" asChild>
               <Link href="/about">About</Link>

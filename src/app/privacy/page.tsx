@@ -2,7 +2,7 @@ import React from 'react';
 
 const PrivacyPage = () => {
     return (
-        <div className="container mx-auto py-12 px-4 md:px-8">
+        <main className="container mx-auto py-12 px-4 md:px-8">
             <section className="mb-12 text-center">
                 <h1 className="heading-display mb-4 animate-in fade-in slide-in-from-top-4 duration-700">Privacy Policy</h1>
                 <p className="body-text-large text-muted-foreground animate-in fade-in duration-1000 delay-200">
@@ -80,7 +80,7 @@ const PrivacyPage = () => {
                     <li>By visiting this page on our website: <a href="/contact" className="text-primary hover:underline">/contact</a></li>
                 </ul>
             </section>
-        </div>
+        </main>
     );
 };
 
