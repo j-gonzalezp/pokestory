@@ -152,9 +152,9 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({
   };
 
   return (
-    <div className="min-h-screen p-6">
+    <div className="min-h-screen p-4 sm:p-6">
       <div className="max-w-4xl mx-auto">
-        <Card className="mb-8">
+        <Card className="mb-6 md:mb-8">
           <CardHeader className="text-center">
             <CardTitle className="text-4xl font-bold text-slate-800 mb-2">
               {t.welcomeTitle}
@@ -165,7 +165,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({
           </CardHeader>
         </Card>
 
-        <div className="grid md:grid-cols-2 gap-6 mb-8">
+        <div className="grid md:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8">
                 <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -204,7 +204,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({
                 {t.language}
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-4">
               <div>
                 <p className="text-sm text-gray-600 mb-3">
                   {language === 'es' ? 'Elige el idioma para tu viaje:' : 'Choose your journey language:'}
@@ -288,18 +288,18 @@ const ProtagonistSelection: React.FC<ProtagonistSelectionProps> = ({
   };
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen p-4 sm:p-6">
       <div className="max-w-4xl mx-auto">
         <Button
           onClick={onBack}
           variant="outline"
-          className="mb-6"
+          className="mb-4"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
           {t.backToSettings}
         </Button>
 
-        <Card className="mb-8">
+        <Card className="mb-6 md:mb-8">
           <CardHeader className="text-center">
             <CardTitle className="text-3xl font-bold text-slate-800">
               {t.chooseProtagonist}
@@ -319,7 +319,7 @@ const ProtagonistSelection: React.FC<ProtagonistSelectionProps> = ({
           </Card>
         ) : (
           <motion.div
-            className="grid md:grid-cols-2 lg:grid-cols-4 gap-6"
+            className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6"
             variants={containerVariants}
             initial="hidden"
             animate="show"
@@ -332,7 +332,7 @@ const ProtagonistSelection: React.FC<ProtagonistSelectionProps> = ({
                 onClick={() => onStart(p)}
               >
                 <Card>
-                  <CardContent className="p-6 text-center">
+                  <CardContent className="p-4 sm:p-6 text-center">
                     {p.spriteUrl && (
                       <Image
                         src={p.spriteUrl}
@@ -415,12 +415,12 @@ const StoryScreen: React.FC<StoryScreenProps> = ({
   const readingProgress = (step / totalStorySteps) * 100;
 
   return (
-    <div className="min-h-screen p-6">
-      <div className="max-w-4xl mx-auto space-y-6">
+    <div className="min-h-screen p-2 sm:p-6">
+      <div className="max-w-4xl mx-auto space-y-4">
         <Button
           onClick={onRestart}
           variant="outline"
-          className="mb-6"
+          className="mb-4"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
           {t.backToSettings}
@@ -432,7 +432,7 @@ const StoryScreen: React.FC<StoryScreenProps> = ({
           </CardHeader>
           <CardContent className="p-4">
             <div className="w-full overflow-x-auto pb-4">
-              <div className="flex items-center gap-x-6 py-4 px-4 min-w-max">
+              <div className="flex items-center gap-x-4 sm:gap-x-6 py-4 px-4 min-w-max">
                 {Array.from({ length: 10 }, (_, index) => {
                   const currentMapStep = index + 1;
                   const node = mapNodes.find(n => n.step === currentMapStep);
@@ -492,7 +492,7 @@ const StoryScreen: React.FC<StoryScreenProps> = ({
             </CardHeader>
             <CardContent>
               <motion.div
-                className="flex gap-6 justify-center overflow-x-auto pb-4 px-4"
+                className="flex gap-4 justify-center overflow-x-auto pb-4 px-4"
                 variants={pokemonContainerVariants}
                 initial="hidden"
                 animate="show"
@@ -639,9 +639,9 @@ const EndScreen: React.FC<EndScreenProps> = ({
 
 
   return (
-    <div className="min-h-screen p-6">
+    <div className="min-h-screen p-4 sm:p-6">
       <div className="max-w-6xl mx-auto">
-        <Card className="mb-8">
+        <Card className="mb-6 md:mb-8">
           <CardHeader className="text-center">
             <CardTitle className="text-4xl font-bold text-slate-800 mb-2">
               {t.adventureEnd}
@@ -662,13 +662,13 @@ const EndScreen: React.FC<EndScreenProps> = ({
           </CardHeader>
         </Card>
 
-        <div className="grid lg:grid-cols-2 gap-6 mb-8">
+        <div className="grid lg:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8">
           <Card className="lg:col-span-2">
             <CardHeader>
               <CardTitle>{t.completeStory}</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-6 max-h-96 overflow-y-auto pr-4">
+              <div className="space-y-4 max-h-96 overflow-y-auto pr-4">
                 {storyHistory.map((text, index) => (
                   <div key={index} className="border-l-4 border-indigo-200 pl-4">
                     <Badge variant="outline" className="mb-2">
@@ -682,8 +682,8 @@ const EndScreen: React.FC<EndScreenProps> = ({
           </Card>
         </div>
 
-        <Card className="mb-8">
-          <CardContent className="p-6 space-y-4">
+        <Card className="mb-6 md:mb-8">
+          <CardContent className="p-4 sm:p-6 space-y-4">
             <Input
               type="text"
               value={title}
@@ -1022,7 +1022,7 @@ const StoryMvp: React.FC = () => {
 
       case 'error':
         return (
-          <div className="min-h-screen flex items-center justify-center p-6">
+          <div className="min-h-screen flex items-center justify-center p-4">
             <Card className="w-full max-w-md">
               <CardHeader className="text-center">
                 <CardTitle className="text-2xl font-bold text-red-600">

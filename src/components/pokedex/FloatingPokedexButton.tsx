@@ -72,8 +72,8 @@ const FloatingPokedexButton: React.FC = () => {
                 style={{ bottom: `${bottomPosition}px` }}
                 size="lg"
             >
-                <BookOpen className="h-5 w-5 mr-2" />
-                <span className="font-medium">{t.startPokedex}</span>
+                <BookOpen className="h-5 w-5 sm:mr-2" />
+                <span className="hidden sm:inline font-medium">{t.startPokedex}</span>
             </Button>
 
             <Dialog open={isPokedexModalOpen} onOpenChange={setIsPokedexModalOpen}>

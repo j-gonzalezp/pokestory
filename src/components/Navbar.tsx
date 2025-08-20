@@ -6,7 +6,7 @@ export default function Navbar() {
   return (
     <nav className="bg-card border-b border-border p-4 shadow-sm">
       <div className="container mx-auto flex justify-between items-center">
-        <Link href="/" className="flex items-center hover:opacity-90 transition-opacity">
+        <Link href="/" className="flex-shrink-0 flex items-center hover:opacity-90 transition-opacity">
           <Image
             src="/logo (2).png"
             alt="Logo"
@@ -15,8 +15,8 @@ export default function Navbar() {
             className="h-10 w-auto"
           />
         </Link>
-        <ul className="flex space-x-2">
-          <li>
+        <ul className="flex space-x-1 sm:space-x-2 items-center">
+          <li className="hidden sm:block">
             <Button variant="ghost" className="text-foreground hover:bg-accent/20 hover:text-accent-foreground" asChild>
               <Link href="/">Home</Link>
             </Button>
