@@ -1,5 +1,7 @@
+// services/gemini.ts
 import { PokeStoryElement } from "./pokeapi"
 import { GoogleGenAI } from "@google/genai"
+import { STORY_ICON_NAMES } from '@/lib/app-icons'; // Import the shared icon list
 
 export interface PokeStoryState {
   currentStep: number
@@ -25,32 +27,8 @@ const ai = new GoogleGenAI({
   apiKey: GEMINI_API_KEY
 });
 
-const AVAILABLE_ICONS = [
-  'Home', 'MapPin', 'Compass', 'Path', 'Footprints', 'Navigation', 'Route', 'Signpost', 
-  'Milestone', 'Crosshairs', 'Target', 'Locate', 'GPS', 'Directions', 'Waypoints',
-  'Flame', 'Fire', 'Wind', 'Waves', 'TreePine', 'Tree', 'Forest', 'Leaf', 'Seedling', 
-  'Flower', 'Flower2', 'Cherry', 'Mountain', 'Mountains', 'Volcano', 'Cave', 'Rock', 
-  'Stone', 'Crystal', 'Gem', 'Diamond', 'Snowflake', 'CloudSnow', 'CloudRain', 'Storm',
-  'Sun', 'Moon', 'Star', 'Stars', 'Sparkles', 'Cloud', 'CloudDrizzle', 'CloudLightning', 
-  'Rainbow', 'Sunrise', 'Sunset', 'Eclipse', 'Comet', 'Orbit', 'Galaxy',
-  'Rabbit', 'Fish', 'Bird', 'Bug', 'Butterfly', 'Bee', 'Ant', 'Spider', 'Snail', 'Turtle',
-  'Cat', 'Dog', 'Horse', 'Sheep', 'Cow', 'Pig', 'MousePointer', 'Pawprint', 'Feather', 'Shell',
-  'Sword', 'Swords', 'Shield', 'Axe', 'Hammer', 'Spear', 'Bow', 'Crosshair', 'Bomb', 'Explosion',
-  'Zap', 'Lightning', 'Bolt', 'Flash', 'Spark', 'Energy', 'Power', 'Strength', 'Fight', 'Strike',
-  'Castle', 'Tower', 'Building', 'Church', 'House', 'Warehouse', 'Factory', 'Tent', 'Hut',
-  'Bridge', 'Gate', 'Door', 'DoorOpen', 'DoorClosed', 'Window',
-  'Wand2', 'MagicWand', 'Sparkle', 'Glitter', 'Potion', 'Cauldron', 'Scroll', 'Rune', 'Pentagram',
-  'Amulet', 'Orb', 'Staff', 'Crown', 'Tiara', 'Ring', 'Pendant', 'Charm', 'Blessing', 'Curse', 'Hex',
-  'Key', 'Keys', 'Lock', 'Unlock', 'Chest', 'Box', 'Package', 'Gift', 'Treasure', 'Coins',
-  'Wrench', 'Screwdriver', 'Pickaxe', 'Shovel', 'Rope', 'Chain', 'Hook', 'Anchor', 'Bell',
-  'Heart', 'HeartBroken', 'Smile', 'Frown', 'Angry', 'Surprised', 'Confused', 'Tired', 'Happy',
-  'Sad', 'Fear', 'Love', 'Hate', 'Joy', 'Peace', 'Rage', 'Wonder', 'Hope', 'Despair',
-  'BookOpen', 'Book', 'Scroll2', 'Quill', 'Ink', 'Map', 'Globe', 'Archive', 'Library', 'Study',
-  'Eye', 'Eyes', 'Vision', 'Watch', 'Clock', 'Timer', 'Hourglass', 'Calendar', 'Date', 'Schedule',
-  'Music', 'Note', 'Trumpet', 'Drum', 'Guitar', 'Piano', 'Violin', 'Flute', 'Song', 'Melody',
-  'Medicine', 'Pill', 'Syringe', 'Bandage', 'Hospital', 'Health', 'Heal', 'Cure', 'Recovery', 'Aid',
-  'Telescope', 'Microscope', 'Beaker', 'Flask', 'Atom', 'DNA', 'Magnet', 'Scale', 'Ruler', 'Calculator'
-];
+// Use the shared STORY_ICON_NAMES from app-icons.ts
+const AVAILABLE_ICONS = STORY_ICON_NAMES;
 
 const NARRATIVE_FRAMEWORK = {
   es: [
@@ -123,7 +101,7 @@ ${AVAILABLE_ICONS.join(', ')}
   "storyText": "Tu texto de historia aquí...",
   "options": [
     "Descripción de la primera opción",
-    "Descripción de la segunda opción", 
+    "Descripción de la segunda opción",
     "Descripción de la tercera opción",
     "Descripción de la cuarta opción"
   ],
@@ -132,8 +110,8 @@ ${AVAILABLE_ICONS.join(', ')}
 
 **Guía para Selección de Iconos:**
 - Home: Inicio del viaje, hogar, lugar seguro
-- Flame/Fire: Peligro, combate, pasión, urgencia
-- TreePine/Forest: Bosques, naturaleza, crecimiento
+- Flame: Peligro, combate, pasión, urgencia
+- TreePine: Bosques, naturaleza, crecimiento
 - Wind: Cambio, movimiento, libertad
 - Waves: Emociones intensas, crisis, fluidez
 - Mountain: Desafíos, obstáculos, elevación
@@ -148,6 +126,7 @@ ${AVAILABLE_ICONS.join(', ')}
 - Crystal/Wand2: Magia, poder místico
 - Cave: Misterio, profundidad, refugio
 - Volcano: Peligro extremo, transformación
+- Map: Ubicación, exploración, descubrimiento
 
 Escribe el segmento de historia ahora:
     `,
@@ -185,7 +164,7 @@ ${AVAILABLE_ICONS.join(', ')}
   "options": [
     "First choice description",
     "Second choice description",
-    "Third choice description", 
+    "Third choice description",
     "Fourth choice description"
   ],
   "iconName": "ChosenIconName"
@@ -193,8 +172,8 @@ ${AVAILABLE_ICONS.join(', ')}
 
 **Icon Selection Guide:**
 - Home: Journey start, home, safe place
-- Flame/Fire: Danger, combat, passion, urgency
-- TreePine/Forest: Forests, nature, growth
+- Flame: Danger, combat, passion, urgency
+- TreePine: Forests, nature, growth
 - Wind: Change, movement, freedom
 - Waves: Intense emotions, crisis, fluidity
 - Mountain: Challenges, obstacles, elevation
@@ -209,6 +188,7 @@ ${AVAILABLE_ICONS.join(', ')}
 - Crystal/Wand2: Magic, mystical power
 - Cave: Mystery, depth, shelter
 - Volcano: Extreme danger, transformation
+- Map: Location, exploration, discovery
 
 Write the story segment now:
     `
@@ -241,6 +221,7 @@ const cleanJsonResponse = (text: string): string => {
 }
 
 const validateIconName = (iconName: string | undefined): string => {
+  // Now, check against the consistent AVAILABLE_ICONS list
   if (!iconName || !AVAILABLE_ICONS.includes(iconName)) {
     console.warn(`Invalid or missing icon name: ${iconName}. Using default MapPin.`);
     return 'MapPin';
@@ -276,7 +257,7 @@ export const generateNextStoryStep = async (
         topP: 0.95,
         maxOutputTokens: 1000,
         thinkingConfig: {
-          thinkingBudget: 0, 
+          thinkingBudget: 0,
         },
       }
     });

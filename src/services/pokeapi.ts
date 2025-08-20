@@ -18,7 +18,7 @@ export interface PokeStoryElement {
   internalUrl: string
   type: 'pokemon' | 'item' | 'location' | 'ability'
   spriteUrl?: string
-  id?: number
+  id: number
 }
 
 export interface Generation {
@@ -27,7 +27,6 @@ export interface Generation {
   displayName: string
   pokemonRange: { start: number, end: number }
 }
-
 
 export const GENERATIONS: Generation[] = [
   { id: 1, name: 'generation-i', displayName: 'Gen I (Kanto)', pokemonRange: { start: 1, end: 151 } },
@@ -45,7 +44,7 @@ const POKEAPI_BASE_URL = 'https://pokeapi.co/api/v2'
 
 const getRandomInt = (max: number): number => Math.floor(Math.random() * max) + 1
 
-const getRandomIntInRange = (min: number, max: number): number => 
+const getRandomIntInRange = (min: number, max: number): number =>
   Math.floor(Math.random() * (max - min + 1)) + min
 
 export const getRegions = async (): Promise<ApiListItem[]> => {
@@ -94,8 +93,8 @@ export const getPokemonDetails = async (idOrName: string | number, language: str
       (entry: any) => entry.language.name === 'en'
     )
     
-    const description = descriptionEntry 
-      ? descriptionEntry.flavor_text.replace(/[\n\f]/g, ' ') 
+    const description = descriptionEntry
+      ? descriptionEntry.flavor_text.replace(/[\n\f]/g, ' ')
       : 'No description available for this Pokémon.'
 
     return {
@@ -178,17 +177,14 @@ export const getLocationsByRegions = async (regionNames: string[]): Promise<ApiL
   }
 }
 
-
 export const getFourDistinctPureTypePokemon = async (selectedGenerations: number[] = []): Promise<PokeStoryElement[]> => {
   const pureTypePokemons: PokeStoryElement[] = []
   const usedTypeIds = new Set<number>()
   const totalTypes = 18
 
-  
   const generationsToUse = selectedGenerations.length > 0 ? selectedGenerations : GENERATIONS.map(g => g.id)
   
-  
-  const allowedRanges = generationsToUse.map(genId => 
+  const allowedRanges = generationsToUse.map(genId =>
     GENERATIONS.find(g => g.id === genId)?.pokemonRange
   ).filter(Boolean) as { start: number, end: number }[]
 
@@ -205,7 +201,6 @@ export const getFourDistinctPureTypePokemon = async (selectedGenerations: number
       const typeData = await typeResponse.json()
       usedTypeIds.add(randomTypeId)
 
-      
       const filteredPokemon = typeData.pokemon.filter((pokemonEntry: any) => {
         const urlParts = pokemonEntry.pokemon.url.split('/')
         const pokemonId = parseInt(urlParts[urlParts.length - 2])
@@ -247,16 +242,13 @@ export const getFourDistinctPureTypePokemon = async (selectedGenerations: number
   return pureTypePokemons
 }
 
-
 export const getRandomStoryElements = async (count: number = 3, selectedGenerations: number[] = []): Promise<PokeStoryElement[]> => {
   const elements: PokeStoryElement[] = []
   const totalLocations = 836
   
-  
   const generationsToUse = selectedGenerations.length > 0 ? selectedGenerations : GENERATIONS.map(g => g.id)
   
-  
-  const allowedRanges = generationsToUse.map(genId => 
+  const allowedRanges = generationsToUse.map(genId =>
     GENERATIONS.find(g => g.id === genId)?.pokemonRange
   ).filter(Boolean) as { start: number, end: number }[]
 
@@ -268,35 +260,34 @@ export const getRandomStoryElements = async (count: number = 3, selectedGenerati
   for (let i = 0; i < count; i++) {
     try {
       if (Math.random() > 0.5 && allowedRanges.length > 0) {
-        
         const randomId = getRandomPokemonFromGenerations()
         const res = await fetch(`${POKEAPI_BASE_URL}/pokemon/${randomId}`)
         if (!res.ok) throw new Error(`Pokemon ${randomId} not found`)
         
         const data = await res.json()
-        elements.push({ 
-          name: data.name, 
-          internalUrl: `/pokemon/${data.name}`, 
+        elements.push({
+          name: data.name,
+          internalUrl: `/pokemon/${data.name}`,
           type: 'pokemon',
           spriteUrl: data.sprites.other?.['official-artwork']?.front_default || data.sprites.front_default,
           id: data.id
         })
       } else {
-        
         const randomId = getRandomInt(totalLocations)
         const res = await fetch(`${POKEAPI_BASE_URL}/location/${randomId}`)
         if (!res.ok) throw new Error(`Location ${randomId} not found`)
         
         const data = await res.json()
-        elements.push({ 
-          name: data.name, 
-          internalUrl: `/locations/${data.name}`, 
-          type: 'location'
+        elements.push({
+          name: data.name,
+          internalUrl: `/locations/${data.name}`,
+          type: 'location',
+          id: -randomId
         })
       }
     } catch (error) {
       console.error("Error fetching a random story element:", error)
-      i-- 
+      i--
     }
   }
   
