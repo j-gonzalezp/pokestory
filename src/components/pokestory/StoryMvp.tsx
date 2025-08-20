@@ -565,8 +565,7 @@ const StoryScreen: React.FC<StoryScreenProps> = ({
               ) : (
                 <TypewriterText
                   text={storyText}
-                  speed={30}
-                  onComplete={() => setIsTypingComplete(true)}
+                  wordDelay={0.05} 
                 />
               )}
             </div>

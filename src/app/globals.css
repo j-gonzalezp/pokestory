@@ -3,6 +3,97 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* ScrollArea Styles */
+[data-radix-scroll-area-viewport] {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+[data-radix-scroll-area-viewport]::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+[data-radix-scroll-area-scrollbar] {
+  display: flex;
+  user-select: none;
+  touch-action: none;
+  transition: background 160ms ease-out;
+}
+
+[data-radix-scroll-area-scrollbar]:hover {
+  background: var(--gray-3);
+}
+
+[data-radix-scroll-area-scrollbar][data-orientation='vertical'] {
+  width: 10px;
+  padding: 2px 0;
+}
+
+[data-radix-scroll-area-scrollbar][data-orientation='horizontal'] {
+  flex-direction: column;
+  height: 10px;
+  padding: 0 2px;
+}
+
+[data-radix-scroll-area-thumb] {
+  flex: 1;
+  background: var(--gray-9);
+  border-radius: 10px;
+  position: relative;
+  transition: background 160ms ease-out;
+}
+
+[data-radix-scroll-area-thumb]:hover {
+  background: var(--gray-10);
+}
+
+/* Shimmer Animation */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.shimmer-effect::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  animation: shimmer 1.5s infinite;
+  transform: translateX(-100%);
+  z-index: 1;
+}
+
+.animate-shimmer {
+  animation: shimmer 1.5s infinite;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+  transform: translateX(-100%);
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
