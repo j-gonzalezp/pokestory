@@ -65,7 +65,7 @@ describe('PokeGrid', () => {
 
     render(<PokeGrid onPokemonSelect={() => {}} />);
 
-    expect(await screen.findByText(/pokemon1/i)).toBeInTheDocument();
+    expect(await screen.findByText(/^pokemon1$/i)).toBeInTheDocument();
     expect(screen.getByText(/pokemon30/i)).toBeInTheDocument();
   });
 
@@ -74,12 +74,12 @@ describe('PokeGrid', () => {
 
     render(<PokeGrid onPokemonSelect={() => {}} />);
 
-    await screen.findByText(/pokemon1/i);
+    await screen.findByText(/^pokemon1$/i);
 
     const searchInput = screen.getByPlaceholderText(/buscar pokémon/i);
     fireEvent.change(searchInput, { target: { value: 'pokemon1' } });
 
-    expect(screen.getByText(/pokemon1/i)).toBeVisible();
+    expect(screen.getByText(/^pokemon1$/i)).toBeVisible();
     expect(screen.queryByText(/pokemon2/i)).not.toBeInTheDocument();
     expect(screen.getByText(/pokemon10/i)).toBeVisible();
   });
@@ -89,7 +89,7 @@ describe('PokeGrid', () => {
 
     render(<PokeGrid onPokemonSelect={() => {}} />);
 
-    await screen.findByText(/pokemon1/i);
+    await screen.findByText(/^pokemon1$/i);
 
     expect(screen.getByText(/Page 1 of 2/i)).toBeInTheDocument();
     expect(screen.queryByText(/pokemon31/i)).not.toBeInTheDocument();
@@ -100,7 +100,7 @@ describe('PokeGrid', () => {
 
     expect(await screen.findByText(/pokemon31/i)).toBeInTheDocument();
     expect(screen.getByText(/Page 2 of 2/i)).toBeInTheDocument();
-    expect(screen.queryByText(/pokemon1/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/^pokemon1$/i)).not.toBeInTheDocument();
 
     expect(screen.getByRole('button', { name: /next/i })).toBeDisabled();
     expect(screen.getByRole('button', { name: /previous/i })).toBeEnabled();
@@ -115,20 +115,20 @@ describe('PokeGrid', () => {
 
     render(<PokeGrid onPokemonSelect={() => {}} />);
 
-    await screen.findByText(/pokemon1/i);
+    await screen.findByText(/^pokemon1$/i);
 
     const favoritesButton = screen.getByRole('button', { name: /show favorites/i });
     fireEvent.click(favoritesButton);
 
     expect(screen.getByText(/pokemon2/i)).toBeVisible();
     expect(screen.getByText(/pokemon5/i)).toBeVisible();
-    expect(screen.queryByText(/pokemon1/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/pokemon3/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/^pokemon1$/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/^pokemon3$/i)).not.toBeInTheDocument();
 
     const showAllButton = screen.getByRole('button', { name: /show all/i });
     fireEvent.click(showAllButton);
-    expect(await screen.findByText(/pokemon1/i)).toBeVisible();
-    expect(screen.getByText(/pokemon3/i)).toBeVisible();
+    expect(await screen.findByText(/^pokemon1$/i)).toBeVisible();
+    expect(screen.getByText(/^pokemon3$/i)).toBeVisible();
   });
 
   test('llama a onPokemonSelect con el nombre correcto al hacer clic en una tarjeta', async () => {
@@ -137,7 +137,7 @@ describe('PokeGrid', () => {
 
     render(<PokeGrid onPokemonSelect={handleSelect} />);
 
-    const card = await screen.findByText(/pokemon1/i);
+    const card = await screen.findByText(/^pokemon1$/i);
     fireEvent.click(card.parentElement!);
 
     expect(handleSelect).toHaveBeenCalledTimes(1);
@@ -149,7 +149,7 @@ describe('PokeGrid', () => {
 
     render(<PokeGrid onPokemonSelect={() => {}} />);
 
-    await screen.findByText(/pokemon1/i);
+    await screen.findByText(/^pokemon1$/i);
 
     const favoriteButton = screen.getByRole('button', { name: '' });
     fireEvent.click(favoriteButton);
